@@ -25,7 +25,7 @@ export const ObsGallery = ({ contest }: { contest: Tables<'art_contest'> }) => {
                 {error && <p>Error: {error.message}</p>}
                 {entries != null && entries.length > 0 ? (
                     <Fade autoplay={true} 
-                    duration={3000} 
+                    duration={5000} 
                     transitionDuration={500}
                     infinite={true}
                     arrows={false}
