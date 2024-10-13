@@ -4,6 +4,7 @@ import { EntryCard } from "./EntryCard.tsx";
 import Modal from "../Model.tsx";
 import ReactPlayer from 'react-player/lazy'
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+import { useState } from "react";
 
 export const ContestEntries = ({ contest }: { contest: Tables<'art_contest'> }) => {
     const { data: entries, isLoading, error } = useGetContestEntries(contest.id);

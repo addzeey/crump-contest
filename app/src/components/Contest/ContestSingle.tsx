@@ -2,6 +2,7 @@ import { useParams } from '@tanstack/react-router'
 import { useGetContests } from '../../utils/supabase';
 import "../../assets/contest.scss";
 import { ContestEntries } from './ContestEntries';
+import { useEffect, useState } from 'react';
 import { ContestWinners } from './ContestWinners';
 
 type Winner = {
