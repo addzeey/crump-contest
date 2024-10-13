@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { Tables } from "../../database.types";
 import { EntryCard } from "./EntryCard";
 import {useGetEntriesById} from "../../utils/supabase";

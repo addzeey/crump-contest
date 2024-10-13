@@ -1,4 +1,4 @@
-import { createRootRoute, createRootRouteWithContext, Link, Outlet } from '@tanstack/react-router'
+import { createRootRouteWithContext, Link, Outlet, useLocation } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/router-devtools'
 import { Header } from '../components/Header'
 import { QueryClient } from '@tanstack/react-query'
@@ -6,13 +6,18 @@ import { QueryClient } from '@tanstack/react-query'
 export const Route = createRootRouteWithContext<{
     queryClient: QueryClient
 }>()({
-    component: () => (
-        <>
-            <Header />
-            <Outlet />
-            <TanStackRouterDevtools />
-        </>
-    ),
+    component: () => {
+        const location = useLocation();
+        const showHeader = !location.pathname.startsWith('/obs/');
+
+        return (
+            <>
+                {showHeader && <Header />}
+                <Outlet />
+                <TanStackRouterDevtools />
+            </>
+        );
+    },
     notFoundComponent: () => {
         return (
             <div>

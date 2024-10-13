@@ -43,7 +43,19 @@ const getEntryById = async (ids: string[]): Promise<Entry[]> => {
     }
     return entries?? [];
 }
-
+// get the latest contest that has the status finished by date
+export const getLatestContest = async (): Promise<Contest[]> => {
+    const { data: art_contest, error } = await supabase
+    .from('art_contest')
+    .select("*")
+    .eq('status', 'finished')
+    .order('end_date', {ascending: false})
+    .limit(1)
+    if (error) {
+        console.error(error);
+    }
+    return art_contest ?? [];
+}
 export const useGetContests = (id?: string) => {
     return useQuery<Contest[]>({
         queryKey: id ? ['contests', id] : ['contests'],
@@ -51,6 +63,7 @@ export const useGetContests = (id?: string) => {
         refetchOnWindowFocus: false,
     });
 };
+
 export const getContestSingle = (postId: string) => {
     return queryOptions<Contest[]>({
         queryKey: ['contests', {postId}],
@@ -70,6 +83,13 @@ export const useGetEntriesById = (id: string[]) => {
     return useQuery<Entry[]>({
         queryKey: ['entry', {id}],
         queryFn: () => getEntryById(id),
+        refetchOnWindowFocus: false,
+    })
+}
+export const useGetLatestContest = () => {
+    return useQuery<Contest[]>({
+        queryKey: ['latestContest'],
+        queryFn: () => getLatestContest(),
         refetchOnWindowFocus: false,
     })
 }

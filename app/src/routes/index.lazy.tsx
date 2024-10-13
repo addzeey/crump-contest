@@ -1,8 +1,7 @@
 import { createLazyFileRoute } from '@tanstack/react-router'
-import { Tables } from "../database.types.ts";
 import { useGetContests } from '../utils/supabase'
 import { ContestCard } from '../components/Contest/ContestCard.tsx';
-import { format, isBefore } from 'date-fns';
+import { isBefore } from 'date-fns';
 
 export const Route = createLazyFileRoute('/')({
     component: Index,

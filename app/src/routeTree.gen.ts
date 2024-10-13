@@ -13,6 +13,7 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as ObsLatestImport } from './routes/obs.latest'
 import { Route as ContestContestIdImport } from './routes/contest.$contestId'
 
 // Create Virtual Routes
@@ -25,6 +26,11 @@ const IndexLazyRoute = IndexLazyImport.update({
   path: '/',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/index.lazy').then((d) => d.Route))
+
+const ObsLatestRoute = ObsLatestImport.update({
+  path: '/obs/latest',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const ContestContestIdRoute = ContestContestIdImport.update({
   path: '/contest/$contestId',
@@ -49,6 +55,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContestContestIdImport
       parentRoute: typeof rootRoute
     }
+    '/obs/latest': {
+      id: '/obs/latest'
+      path: '/obs/latest'
+      fullPath: '/obs/latest'
+      preLoaderRoute: typeof ObsLatestImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -57,6 +70,7 @@ declare module '@tanstack/react-router' {
 export const routeTree = rootRoute.addChildren({
   IndexLazyRoute,
   ContestContestIdRoute,
+  ObsLatestRoute,
 })
 
 /* prettier-ignore-end */
@@ -68,7 +82,8 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/contest/$contestId"
+        "/contest/$contestId",
+        "/obs/latest"
       ]
     },
     "/": {
@@ -76,6 +91,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/contest/$contestId": {
       "filePath": "contest.$contestId.tsx"
+    },
+    "/obs/latest": {
+      "filePath": "obs.latest.tsx"
     }
   }
 }

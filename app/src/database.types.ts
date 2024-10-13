@@ -44,28 +44,37 @@ export type Database = {
       }
       entries: {
         Row: {
+          canVote: boolean
           contest_id: string
           created_at: string
           discord_id: number
           discord_name: string
           id: string
-          image_id: string
+          image_count: number
+          isVideo: string | null
+          message: string | null
         }
         Insert: {
+          canVote?: boolean
           contest_id: string
           created_at?: string
           discord_id: number
           discord_name: string
           id?: string
-          image_id: string
+          image_count?: number
+          isVideo?: string | null
+          message?: string | null
         }
         Update: {
+          canVote?: boolean
           contest_id?: string
           created_at?: string
           discord_id?: number
           discord_name?: string
           id?: string
-          image_id?: string
+          image_count?: number
+          isVideo?: string | null
+          message?: string | null
         }
         Relationships: [
           {

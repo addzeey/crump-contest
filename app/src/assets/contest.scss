@@ -1,4 +1,36 @@
 @import 'variables';
+
+.entry-wrap {
+    .contest-card {
+        transition: 0.2s;
+        &:hover {
+            background: #e24051;
+            transform: scale(1.05);
+
+            .card-icon{
+                font-size: 50px;
+                color: $lighter !important;
+            }
+        }
+
+        .image-wrap {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+
+            .card-icon{
+                font-size: 50px;
+                transition: 0.2s;
+                color: $primary;
+            }
+        }
+    }
+    .entry-item{
+        width: 24%;
+    }
+}
 .contest-card {
     display: flex;
     flex-direction: column;
@@ -24,7 +56,6 @@
             object-fit: contain;
         }
     }
-
 }
 .winner-item{
     max-height: 200px;
@@ -40,16 +71,59 @@
     }
 }
 .modal {
-    .image-wrap{
-        width: 100%;
-        max-height: 90%;
-        height: 100%;
-        overflow-y: scroll;
-        overflow-x: hidden;
+    button.btn.modal-close {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        width: 40px;
+        height: 40px;
+        background: #ffffff;
+    }
+    .entry-info {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        transition: 0.3s;
+        align-items: flex-start;
+        justify-content: center;
+        flex-wrap: wrap;
+        padding: 10px 0px;
+        gap: 10px;
+
+        .image-controls {
+
+            #img-no {
+                background: #4e4e4e;
+                color: $light;
+                border: solid 1px $primary;
+            }
+
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            button.btn {
+                background: #e24051;
+                color: #ffffff;
+                font-weight: bold;
+            }
+        }
+    }
+    .modal-content {
+        width: auto;
+        max-width: 90%;
+        max-height: 100%;
+        height: auto;
+        display: flex;
+        flex-direction: column;
+        overflow-y: hidden;
+        background: $grey-dark;
+        border: 2px solid $primary;
+    }
+    .content-modal-content {
+        height: 100%;
+        overflow: hidden;
+    }
+    .image-wrapper {
+        background: $dark;
+        cursor: move;
     }
     img.entry-image {
         height: 100%;
