@@ -21,15 +21,14 @@ export const ContestWinners = ({winners}: { winners: Winners}) => {
         });
     return (
         <div className="results w-100 overflow-hidden">
-            {JSON.stringify(winners)}
             <h2 className="text-white">Results</h2>
             <p className="text-white fs-5">The results are in! Check out the winners below:</p>
             <div className="results-wrap d-flex gap-2 py-3">
                 {
                     sortedEntries != null && sortedEntries.length > 0 ? (
                         sortedEntries.map((winner, index) => (
-                            <div className="winner-item">
-                            <EntryCard key={index} entry={winner} />
+                            <div key={index} className="winner-item">
+                            <EntryCard key={index} entry={winner} placement={index + 1} />
                             </div>
                         ))
                     ) : null

@@ -1,3 +1,5 @@
 app/local/*
 app/node_modules/*
+app/supabase/*
 node_modules/*
+workers/*

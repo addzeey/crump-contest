@@ -58,8 +58,22 @@
     }
 }
 .winner-item{
-    max-height: 200px;
-    width: 18%;
+    max-height: 250px;
+    width: 20%;
+
+    .winner-placement {
+        font-size: 1.2em;
+        color: $lighter;
+        width: 100%;
+        background-color: $primary;
+        padding: 0px 8px;
+        font-weight: 700;
+        display: inline-flex;
+        gap: 5px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+    }
 }
 .contest-title {
     font-weight: 700;
@@ -71,6 +85,7 @@
     }
 }
 .modal {
+
     button.btn.modal-close {
         position: absolute;
         right: 10px;
@@ -109,8 +124,9 @@
     .modal-content {
         width: auto;
         max-width: 90%;
+        min-width: 75%;
         max-height: 100%;
-        height: auto;
+        height: 100%;
         display: flex;
         flex-direction: column;
         overflow-y: hidden;
@@ -123,7 +139,16 @@
     }
     .image-wrapper {
         background: $dark;
+        width: 100%;
         cursor: move;
+
+        .react-transform-wrapper{
+            width: 100%;
+        }
+    }
+    .yt-player {
+        aspect-ratio: 16 / 9;
+        background: $dark;
     }
     img.entry-image {
         height: 100%;

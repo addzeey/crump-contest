@@ -4,7 +4,7 @@ import "../../assets/contest.scss";
 import { ContestEntries } from './ContestEntries';
 import { useEffect, useState } from 'react';
 import { ContestWinners } from './ContestWinners';
-
+import { supabase } from '../../utils/supabase';
 type Winner = {
     place: number;
     uuid: string;
@@ -18,40 +18,72 @@ export const ContestSingle = () => {
             contest: params.contestId,
         }),
     });
-    const { data, isLoading, error } = useGetContests(contest);
+    const { data: contestData, isLoading, error } = useGetContests(contest);
+    const [contestStatus, setContestStatus] = useState<string | null>(null);
+    const [votingEnabled, setVotingEnabled] = useState(false);
+
+    useEffect(() => {
+        // Set up a real-time subscription to the 'contest' table
+        const artContest = supabase.channel('contest_updates')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'art_contest' }, payload => {
+                console.log('Change received!', payload)
+                if(payload.new.status) {
+                    setContestStatus(payload.new.status);
+                }
+                if(payload.new.status === 'voting') {
+                    setVotingEnabled(true);
+                }
+            })
+            .subscribe()
+
+
+        // Clean up the subscriptions on component unmount
+        return () => {
+            supabase.removeChannel(artContest);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (contestData != null && contestData.length > 0) {
+            setContestStatus(contestData[0].status);
+            if(contestData[0].status === 'voting') {
+                setVotingEnabled(true);
+            }
+        }
+    }, [contestData]);
 
     return (
         <div className='container'>
             <section className="text-white py-3">
                 {isLoading && <p>Loading...</p>}
                 {error && <p>Error: {error.message}</p>}
-                {data != null && data.length > 0 ? (
+                {contestData != null && contestData.length > 0 ? (
                     <div className="contest-info">
-                        <span className='badge bg-light text-dark fs-5 text-capitalize'>Status: {data[0].status}</span>
-                        <h2 className='contest-title fs-1 py-2'>{data[0].title}</h2>
+                        <span className='badge bg-light text-dark fs-5 text-capitalize'>Status: {contestStatus}</span>
+                        <h2 className='contest-title fs-1 py-2'>{contestData[0].title}</h2>
                         <div className="date-wrap d-flex gap-4 fs-5">
                             <span className='start badge bg-light text-dark'>
-                                Start Date: {data[0].start_date ? new Date(data[0].start_date).toLocaleDateString() : 'N/A'}
+                                Start Date: {contestData[0].start_date ? new Date(contestData[0].start_date).toLocaleDateString() : 'N/A'}
                             </span>
                             <span className='end badge bg-light text-dark'>
-                                End Date: {data[0].end_date ? new Date(data[0].end_date).toLocaleDateString() : 'N/A'}
+                                End Date: {contestData[0].end_date ? new Date(contestData[0].end_date).toLocaleDateString() : 'N/A'}
                             </span>
                         </div>
                         <p className='description py-4 fs-5'>
-                            {data[0].description}
+                            {contestData[0].description}
                         </p>
                     </div>
                 ) : null
                 }
             </section>
             {
-                data && data[0].status === 'finished' && data[0].winners != null ? (
-                    <ContestWinners winners={data[0].winners} />
+                contestData && contestData[0].status === 'finished' && contestData[0].winners != null ? (
+                    <ContestWinners winners={contestData[0].winners} />
                 ) : null
             }
             {
-                data != null && data.length > 0 ? (
-                    <ContestEntries contest={data[0]} />
+                contestData != null && contestData.length > 0 ? (
+                    <ContestEntries contest={contestData[0]} />
                 ) : null
             }
         </div>

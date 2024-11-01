@@ -10,7 +10,7 @@ export const ContestEntries = ({ contest }: { contest: Tables<'art_contest'> }) 
     const { data: entries, isLoading, error } = useGetContestEntries(contest.id);
     const [previewEntry, setPreviewEntry] = useState<Tables<'entries'> | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
+    const [votes, setVotes] = useState([]);
     const toggleModal = (setState: React.Dispatch<React.SetStateAction<any>>) => {
         setState(null);
         setCurrentImageIndex(0); // Reset image index when closing modal
@@ -27,7 +27,14 @@ export const ContestEntries = ({ contest }: { contest: Tables<'art_contest'> }) 
             setCurrentImageIndex((prevIndex) => (prevIndex - 1 + previewEntry.image_count) % previewEntry.image_count);
         }
     };
-
+    const preloadImages = (entry: Tables<'entries'>) => {
+        if (entry.image_count > 0) {
+            for (let i = 1; i <= entry.image_count; i++) {
+                const img = new Image();
+                img.src = `${import.meta.env.VITE_CDN_URL}${entry.contest_id}/${entry.id}${entry.image_count > 1 ? "_" + i : ""}.png`;
+            }
+        }
+    };
     return (
         <>
             <h1 className="text-white">Contest Entries</h1>
@@ -36,7 +43,12 @@ export const ContestEntries = ({ contest }: { contest: Tables<'art_contest'> }) 
                 {error && <p>Error: {error.message}</p>}
                 {entries != null && entries.length > 0 ? (
                     entries.map((entry) => (
-                        <div key={entry.id} className="entry-item" onClick={() => setPreviewEntry(entry)}>
+                        <div 
+                            key={entry.id} 
+                            className="entry-item"
+                            onClick={() => setPreviewEntry(entry)}
+                            onMouseEnter={() => preloadImages(entry)}
+                        >
                             <EntryCard entry={entry} />
                         </div>
                     ))
@@ -78,12 +90,13 @@ export const ContestEntries = ({ contest }: { contest: Tables<'art_contest'> }) 
                                                 controls
                                                 width="100%"
                                                 height="auto"
+                                                className="yt-player"
                                             />
                                         )
                                     ) : (
                                         <div className="image-wrapper">
                                         <TransformWrapper
-                                            minScale={0}
+                                            minScale={0.1}
                                             limitToBounds={false}
                                             centerContent={true}
                                             wheelEnabled={true}
