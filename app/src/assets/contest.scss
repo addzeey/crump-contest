@@ -160,3 +160,25 @@
         }
     }
 }
+
+@media only screen and (max-width: 1400px) {
+    .entry-wrap {
+        .entry-item {
+            width: 30%;
+        }
+    }
+}
+@media only screen and (max-width: 1000px) {
+    .entry-wrap {
+        .entry-item {
+            width: 48%;
+        }
+    }
+}
+@media only screen and (max-width: 600px) {
+    .entry-wrap {
+        .entry-item {
+            width: 100%;
+        }
+    }
+}
