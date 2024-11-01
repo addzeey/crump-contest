@@ -223,10 +223,13 @@
             max-width: 100%;
         }
     }
+    p.message {
+        font-size: 14px !important;
+        max-height: 200px;
+        overflow-x: scroll;
+    }
     .entry-wrap {
-        p.message {
-            font-size: 14px !important;
-        }
+        
         .entry-item {
             width: 100%;
         }
