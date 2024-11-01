@@ -1,21 +1,55 @@
 import { Tables } from "../../database.types.ts";
-import { useGetContestEntries } from "../../utils/supabase.ts";
+import { getImageThumb, useGetContestEntries, getImageurl } from "../../utils/supabase.ts";
 import { EntryCard } from "./EntryCard.tsx";
 import Modal from "../Model.tsx";
 import ReactPlayer from 'react-player/lazy'
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
-import { useState } from "react";
-
-export const ContestEntries = ({ contest }: { contest: Tables<'art_contest'> }) => {
+import { useEffect, useRef, useState } from "react";
+type Entry = Tables<'entries'>
+export const ContestEntries = ({ contest, onVoteChange, selectedVotes, votingEnabled }: { contest: Tables<'art_contest'>, onVoteChange: (entryId: string) => void, selectedVotes: Entry[], votingEnabled: boolean }) => {
     const { data: entries, isLoading, error } = useGetContestEntries(contest.id);
     const [previewEntry, setPreviewEntry] = useState<Tables<'entries'> | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [votes, setVotes] = useState([]);
+    const [imageUrl, setImageUrl] = useState('');
+    const [imageLoaded, setImageLoaded] = useState(true);
     const toggleModal = (setState: React.Dispatch<React.SetStateAction<any>>) => {
         setState(null);
         setCurrentImageIndex(0); // Reset image index when closing modal
     };
+    const zoomAreaRef = useRef(null);
 
+    useEffect(() => {
+        if (previewEntry) {
+            setImageLoaded(false); // Set imageLoaded to false when generating the URL
+            const url = getImageurl(`${previewEntry?.contest_id}/${previewEntry?.id}${previewEntry?.image_count > 1 ? "_" + (currentImageIndex + 1) : ""}`, null);
+            const img = new Image();
+            img.src = url.data.publicUrl;
+            img.onload = () => {
+                setTimeout(() => {
+                    setImageLoaded(true);
+                }, 300);
+            }; // Set imageLoaded to true when the image loads
+            setImageUrl(url.data.publicUrl);
+        }
+    }, [previewEntry, currentImageIndex]);
+    useEffect(() => {
+        // Function to prevent default pinch-zoom behavior on the document
+        const preventPinchZoom = (e) => {
+            // Check if the event target is inside the zoomAreaRef
+            if (zoomAreaRef.current && zoomAreaRef.current.contains(e.target)) {
+                return; // Allow pinch-zoom inside the component
+            }
+            if (e.touches.length > 1) {
+                e.preventDefault(); // Prevent pinch-zoom globally
+            }
+        };
+
+        document.addEventListener('touchmove', preventPinchZoom, { passive: false });
+
+        return () => {
+            document.removeEventListener('touchmove', preventPinchZoom);
+        };
+    }, []);
     const handleNextImage = () => {
         if (previewEntry) {
             setCurrentImageIndex((prevIndex) => (prevIndex + 1) % previewEntry.image_count);
@@ -43,13 +77,18 @@ export const ContestEntries = ({ contest }: { contest: Tables<'art_contest'> }) 
                 {error && <p>Error: {error.message}</p>}
                 {entries != null && entries.length > 0 ? (
                     entries.map((entry) => (
-                        <div 
-                            key={entry.id} 
+                        <div
+                            key={entry.id}
                             className="entry-item"
-                            onClick={() => setPreviewEntry(entry)}
                             onMouseEnter={() => preloadImages(entry)}
                         >
-                            <EntryCard entry={entry} />
+                            <EntryCard
+                                entry={entry}
+                                isSelected={selectedVotes.includes(entry)}
+                                onVoteToggle={onVoteChange}
+                                onPreview={() => setPreviewEntry(entry)}
+                                votingEnabled={votingEnabled}
+                            />
                         </div>
                     ))
                 ) : null}
@@ -58,16 +97,16 @@ export const ContestEntries = ({ contest }: { contest: Tables<'art_contest'> }) 
                 previewEntry != null ? (
                     <Modal toggleModal={() => toggleModal(setPreviewEntry)} dismissable={true} className={"entry-fullscreen"}>
                         <div className="content-modal-content">
-                            <div className="entry-info">
-                                <div className="info-top d-flex gap-2">
-                                <h3 className="fs-5 badge bg-light text-dark m-0">{previewEntry.discord_name}</h3>
-                                {previewEntry.image_count > 1 && (
-                                    <div className="image-controls">
-                                        <span id="img-no" className="fs-5 badge">Image {currentImageIndex + 1} / {previewEntry.image_count}</span>
-                                        <button className="btn" onClick={handlePrevImage}>Previous</button>
-                                        <button className="btn" onClick={handleNextImage}>Next</button>
-                                    </div>
-                                )}
+                            <div ref={zoomAreaRef} className="entry-info">
+                                <div className="info-top d-flex flex-column flex-md-row gap-2">
+                                    <h3 className="fs-5 badge bg-light text-dark m-0">{previewEntry.discord_name}</h3>
+                                    {previewEntry.image_count > 1 && (
+                                        <div className="image-controls">
+                                            <span id="img-no" className="fs-5 badge">Image {currentImageIndex + 1} / {previewEntry.image_count}</span>
+                                            <button className="btn" onClick={handlePrevImage}>Previous</button>
+                                            <button className="btn" onClick={handleNextImage}>Next</button>
+                                        </div>
+                                    )}
                                 </div>
                                 {
                                     previewEntry.message && (
@@ -95,28 +134,37 @@ export const ContestEntries = ({ contest }: { contest: Tables<'art_contest'> }) 
                                         )
                                     ) : (
                                         <div className="image-wrapper">
-                                        <TransformWrapper
-                                            minScale={0.1}
-                                            limitToBounds={false}
-                                            centerContent={true}
-                                            wheelEnabled={true}
-                                            disabled={false}
-                                            zoomout={{ step: 100 }}
-                                        >
-                                            <TransformComponent>
-                                                <img
-                                                    src={`${import.meta.env.VITE_CDN_URL}${previewEntry.contest_id}/${previewEntry.id}${previewEntry.image_count > 1 ? "_" + (currentImageIndex + 1) : ""}.png`}
-                                                    alt="Zoomable"
-                                                    style={{
-                                                        width: '100%',
-                                                        height: 'auto',
-                                                        maxWidth: '100%',
-                                                        maxHeight: '100%',
-                                                    }}
-                                                />
-                                            </TransformComponent>
-                                        </TransformWrapper>
-                                    </div>
+                                            {
+                                                !imageLoaded && (
+                                                    <div className="loading-spinner">
+                                                        <div className="spinner-border text-light" role="status">
+                                                            <span className="visually-hidden">Loading...</span>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            }
+                                            <TransformWrapper
+                                                minScale={0.1}
+                                                limitToBounds={false}
+                                                centerContent={true}
+                                                wheelEnabled={true}
+                                                disabled={false}
+                                                zoomout={{ step: 100 }}
+                                            >
+                                                <TransformComponent>
+                                                    <img
+                                                        src={imageUrl}
+                                                        alt="Zoomable"
+                                                        style={{
+                                                            width: '100%',
+                                                            height: 'auto',
+                                                            maxWidth: '100%',
+                                                            maxHeight: '100%',
+                                                        }}
+                                                    />
+                                                </TransformComponent>
+                                            </TransformWrapper>
+                                        </div>
                                     )
                                 }
                             </div>

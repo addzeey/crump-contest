@@ -20,7 +20,7 @@ function Index() {
             <h2 className="sub-title text-uppercase py-3">
                 Current Contests
             </h2>
-            <div className="contest-wrap gap-2 py-3">
+            <div className="contest-wrap d-flex gap-2 py-3">
                 {
                     isLoading ? (
                         <p className="loading text-white fs-3">Loading Contests</p>

@@ -1,16 +1,18 @@
 import { useParams } from '@tanstack/react-router'
-import { useGetContests } from '../../utils/supabase';
+import { getUserVotes, saveVote, useGetContests, useGetEntriesById, useGetUserVotes } from '../../utils/supabase';
 import "../../assets/contest.scss";
 import { ContestEntries } from './ContestEntries';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ContestWinners } from './ContestWinners';
 import { supabase } from '../../utils/supabase';
+import { ContestVotes } from './ContestVotes';
+import { VoteCard } from './VoteCard';
+import { Tables } from '../../database.types';
 type Winner = {
     place: number;
     uuid: string;
 };
-
-type Winners = Winner[];
+type Entry = Tables<'entries'>
 export const ContestSingle = () => {
     const { contest } = useParams({
         from: '/contest/$contestId',
@@ -19,9 +21,32 @@ export const ContestSingle = () => {
         }),
     });
     const { data: contestData, isLoading, error } = useGetContests(contest);
+    const { data: userVotes, isLoading: loadingVotes, error: errorVotes } = useGetUserVotes(contest);
     const [contestStatus, setContestStatus] = useState<string | null>(null);
     const [votingEnabled, setVotingEnabled] = useState(false);
+    const [selectedVotes, setSelectedVotes] = useState<Entry[]>([]);
+    const [initialVotesLoaded, setInitialVotesLoaded] = useState(false);
+    function debounce(func: Function, delay: number) {
+        let timeoutId: NodeJS.Timeout;
+        return function(...args: any[]) {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                func(...args);
+            }, delay);
+        };
+    }
 
+    useEffect(() => {
+        if (userVotes && userVotes.length > 0) {
+            // get entries by id for each userVotes
+            const existingVotes = userVotes.map((vote) => vote.votes);
+            // covert json into array of strings
+            const voteEntries = useGetEntriesById(existingVotes);
+            setSelectedVotes(userVotes);
+            setInitialVotesLoaded(true);
+        }
+    }, [userVotes]);
+    
     useEffect(() => {
         // Set up a real-time subscription to the 'contest' table
         const artContest = supabase.channel('contest_updates')
@@ -52,6 +77,33 @@ export const ContestSingle = () => {
         }
     }, [contestData]);
 
+    useEffect(() => {
+        if (initialVotesLoaded && selectedVotes.length > 0) {
+            console.log('Saving votes', selectedVotes);
+            
+            // const debouncedSaveVote = debounce((contest: string, selectedVotes: Entry[]) => {
+            //     saveVote(contest, selectedVotes);
+            // }, 1000);
+            // debouncedSaveVote(contest, selectedVotes);
+        }
+    }, [selectedVotes, contest, initialVotesLoaded]);
+    
+    const handleVoteChange = (entry: Entry) => {
+        setSelectedVotes((prevVotes) => {
+            if (prevVotes.some(vote => vote.id === entry.id)) {
+                return prevVotes.filter((vote) => vote.id !== entry.id);
+            } else if (prevVotes.length < 5) {
+                return [...prevVotes, entry];
+            } else {
+                alert('You can only vote for up to 5 entries.');
+                return prevVotes;
+            }
+        });
+    };
+
+    const handleDeleteVote = (entryId: string) => {
+        setSelectedVotes((prevVotes) => prevVotes.filter((vote) => vote.id !== entryId));
+    };
     return (
         <div className='container'>
             <section className="text-white py-3">
@@ -81,9 +133,23 @@ export const ContestSingle = () => {
                     <ContestWinners winners={contestData[0].winners} />
                 ) : null
             }
+            {votingEnabled ? (
+                <section className="selected-votes text-white py-3">
+                    <h2>Selected Votes</h2>
+                    <div className="selected-votes-wrap d-flex gap-2 py-3">
+                        {selectedVotes.map((vote) => (
+                            <div key={vote.id} className="selected-vote-item d-flex flex-column gap-1">
+                                <VoteCard entry={vote} />
+                                <button className='rm-vote w-100' onClick={() => handleDeleteVote(vote.id)}>Delete</button>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            ) : null
+        }
             {
                 contestData != null && contestData.length > 0 ? (
-                    <ContestEntries contest={contestData[0]} />
+                    <ContestEntries contest={contestData[0]} onVoteChange={handleVoteChange} selectedVotes={selectedVotes} votingEnabled={votingEnabled} />
                 ) : null
             }
         </div>

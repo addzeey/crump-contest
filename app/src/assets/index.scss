@@ -1,4 +1,7 @@
 @import 'variables';
+html {
+  overflow: auto;
+}
 body {
   margin: 0;
   display: flex;
@@ -6,6 +9,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background: $dark;
+  overflow-x: hidden;
 
   #root {
     width: 100%;
@@ -64,4 +68,32 @@ section {
     flex-direction: column;
     overflow-y: hidden;
   }
+}
+@media only screen and (max-width: 600px) {
+  header {
+    padding: 20px 0px;
+  }
+  nav {
+    width: 100%;
+  
+    ul.menu {
+        font-size: 16px;
+        display: flex;
+        flex-direction: column;
+    }
+  }
+}
+
+.loading-spinner {
+  position: absolute;
+  width: 100%;
+  background: #00000030;
+  left: 0;
+  top: 0;
+  height: 100%;
+  display: flex;
+  z-index: 99;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }

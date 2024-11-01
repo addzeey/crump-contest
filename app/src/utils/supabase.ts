@@ -4,6 +4,7 @@ import { Tables } from "../database.types";
 import { useEffect, useState } from "react";
 type Contest = Tables<"art_contest">;
 type Entry = Tables<"entries">;
+type Votes = Tables<"vote_entries">;
 export const supabase = createClient(
 	import.meta.env.VITE_SUPABASE_URL,
 	import.meta.env.VITE_SUPABASE_KEY_ANON
@@ -125,49 +126,133 @@ export const useSession = () => {
 
 	return session;
 };
-export const useTwitchAuth = () => {
-	const [error, setError] = useState<string | null>(null);
-	const [loading, setLoading] = useState(false);
-	const [user, setUser] = useState(null);
-
-	const signInWithTwitch = async () => {
-		setLoading(true);
-		setError(null);
-
-		const { user, session, error } = await supabase.auth.signInWithOAuth({
-			provider: "twitch",
+const fetchUser = async () => {
+	const session = supabase.auth;	
+	const getSession = await session.getSession()
+	if (session && getSession && getSession.data.session) {
+		return getSession.data.session.user.user_metadata
+	} else {
+		return null;
+	}
+};
+export function useUserQuery() {
+    return useQuery({
+        queryKey: ['user'],
+        queryFn: fetchUser, // Directly pass the fetch function
+		staleTime: 1000 * 60 * 30
+    });
+}
+export const signInWithTwitch = async () => {
+	const { data, error } = await supabase.auth.signInWithOAuth({
+		provider: "twitch",
+		options: {
+			scopes: "user:read:email",
+			redirectTo: import.meta.env.VITE_REDIRECT_URL,
+		},
+	});
+	if (error) throw error;
+    
+    return data;
+};
+export const signOut = async () => {
+	const { error } = await supabase.auth.signOut();
+	// eslint-disable-next-line react-hooks/rules-of-hooks
+	window.location.reload();
+	if (error) throw error;
+};
+// if width is passed resize the image
+export const getImageurl = (url: string, width: number | null) => {
+	if(width != null){
+		return supabase.storage.from("crump-contest").getPublicUrl(`${url}.png`, {
+			transform: {
+				quality: 80,
+				width: width,
+				resize: 'contain', 
+			},
 		});
+	} else {
+		return supabase.storage.from("crump-contest").getPublicUrl(`${url}.png`, {
+			transform: {
+				quality: 80,
+			},
+		});
+	}
+};
+export const getImageThumb = (url: string) => {
+	return supabase.storage.from("crump-contest").getPublicUrl(`${url}.png`, {
+		transform: {
+			quality: 60,
+			width: 250,
+			resize: 'contain',
+		},
+	});
+}
+export const useGetUserVotes = (contestId: string) => {
+	return useQuery<Votes[]>({
+		queryKey: ["votes", { contestId }],
+		queryFn: () => getUserVotes(contestId),
+		refetchOnWindowFocus: false,
+	});
+}
+export const getUserVotes = async (contestId: string) => {
+	const { data, error } = await supabase
+		.from("vote_entries")
+		.select("*")
+		.eq("contest_id", contestId);
+	if (error) {
+		console.error(error);
+	}
+	return data ?? [];
+}
+// votes are stored as json in the database
+export const saveVote = async (contestId: string, votes: Votes[]) => {
+    // Pull out the entry id from the entry object
+    const votearray = votes.map((entry) => entry.id);
+    // Convert the array to a JSON string
+    const voteJson = JSON.stringify(votearray);
 
-		if (error) {
-			setError(error.message);
-			setLoading(false);
-			return;
-		}
+    // Check if there is an existing vote entry for the contestId
+    const { data: existingVote, error: fetchError } = await supabase
+        .from("vote_entries")
+        .select("*")
+        .eq("contest_id", contestId)
+        .maybeSingle(); // Use maybeSingle to handle no rows case
 
-		setUser(user);
-		setLoading(false);
-	};
+    if (fetchError) {
+        console.error(fetchError);
+        return null;
+    }
 
-	const signOut = async () => {
-		setLoading(true);
-		setError(null);
+    let result;
+    if (existingVote) {
+        // Update the existing vote entry
+        const { data, error } = await supabase
+            .from("vote_entries")
+            .update({ votes: voteJson })
+            .eq("contest_id", contestId)
+            .select();
+        if (error) {
+            console.error(error);
+            return null;
+        }
+        result = data;
+    } else {
+        // Insert a new vote entry
+        const { data, error } = await supabase
+            .from("vote_entries")
+            .insert([
+                {
+                    contest_id: contestId,
+                    votes: voteJson,
+                },
+            ])
+            .select();
+        if (error) {
+            console.error(error);
+            return null;
+        }
+        result = data;
+    }
 
-		const { error } = await supabase.auth.signOut();
-
-		if (error) {
-			setError(error.message);
-		} else {
-			setUser(null);
-		}
-
-		setLoading(false);
-	};
-
-	return {
-		signInWithTwitch,
-		signOut,
-		user,
-		loading,
-		error,
-	};
+    return result;
 };

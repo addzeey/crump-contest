@@ -19,6 +19,7 @@
             justify-content: center;
             align-items: center;
             font-size: 2em;
+            cursor: pointer;
 
             .card-icon{
                 font-size: 50px;
@@ -29,6 +30,34 @@
     }
     .entry-item{
         width: 24%;
+    }
+}
+.voting-btn {
+    background: $dark;
+    border: 0;
+    color: $light;
+    transition: 0.3s;
+    aspect-ratio: 1 / 1;
+    height: 100%;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+
+    &:hover {
+        background: $light;
+        color: $dark;
+    }
+
+    &.active {
+        background: #e24051;
+        color:  $light;
+
+        &:hover {
+            background: $dark;
+        }
     }
 }
 .contest-card {
@@ -93,6 +122,7 @@
         width: 40px;
         height: 40px;
         background: #ffffff;
+        z-index: 100;
     }
     .entry-info {
         display: flex;
@@ -169,6 +199,17 @@
     }
 }
 @media only screen and (max-width: 1000px) {
+    ul.menu {
+        font-size: 16px;
+    }
+    .modal {
+        .entry-info {
+            .image-controls {
+                display: flex;
+                flex-direction: column;
+            }
+        }
+    }
     .entry-wrap {
         .entry-item {
             width: 48%;
@@ -176,9 +217,50 @@
     }
 }
 @media only screen and (max-width: 600px) {
+    .modal {
+        .modal-content {
+            max-height: 90%;
+            max-width: 100%;
+        }
+    }
     .entry-wrap {
+        p.message {
+            font-size: 14px !important;
+        }
         .entry-item {
             width: 100%;
         }
+    }
+    .entry-info {
+        .image-controls {
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: space-between !important;
+            flex-wrap: wrap !important;
+
+            #img-no {
+                width: 100%;
+            }
+            button.btn {
+                width: 47%;
+            }
+        }
+    }
+    .info-top {
+        width: 100%;
+        padding-top: 50px;
+        h3 {
+            font-size: 20px !important;
+        }
+    }
+}
+.rm-vote {
+    background-color: $primary;
+    border: 0;
+    color: $light;
+
+    &:hover {
+        background-color: $tertiary;
+        color: $dark;
     }
 }

@@ -13,7 +13,7 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as LoginImport } from './routes/login'
+import { Route as AccountImport } from './routes/account'
 import { Route as ObsLatestImport } from './routes/obs.latest'
 import { Route as ContestContestIdImport } from './routes/contest.$contestId'
 
@@ -23,8 +23,8 @@ const IndexLazyImport = createFileRoute('/')()
 
 // Create/Update Routes
 
-const LoginRoute = LoginImport.update({
-  path: '/login',
+const AccountRoute = AccountImport.update({
+  path: '/account',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -54,11 +54,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexLazyImport
       parentRoute: typeof rootRoute
     }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginImport
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountImport
       parentRoute: typeof rootRoute
     }
     '/contest/$contestId': {
@@ -82,7 +82,7 @@ declare module '@tanstack/react-router' {
 
 export const routeTree = rootRoute.addChildren({
   IndexLazyRoute,
-  LoginRoute,
+  AccountRoute,
   ContestContestIdRoute,
   ObsLatestRoute,
 })
@@ -96,7 +96,7 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/login",
+        "/account",
         "/contest/$contestId",
         "/obs/latest"
       ]
@@ -104,8 +104,8 @@ export const routeTree = rootRoute.addChildren({
     "/": {
       "filePath": "index.lazy.tsx"
     },
-    "/login": {
-      "filePath": "login.tsx"
+    "/account": {
+      "filePath": "account.tsx"
     },
     "/contest/$contestId": {
       "filePath": "contest.$contestId.tsx"

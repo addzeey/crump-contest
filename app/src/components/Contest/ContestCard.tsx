@@ -6,7 +6,7 @@ export const ContestCard = ({ contest }: { contest: Tables<'art_contest'> }) => 
     const { status } = contest;
     return(
         <>
-        <div className="contest-card col-4">
+        <div className="contest-card col-12 col-sm-12 col-lg-5">
             <h3>{contest.title}</h3>
             <p className="description">{contest.description}</p>
             <div className="date-wrap d-flex">
