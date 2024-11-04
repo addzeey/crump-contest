@@ -7,7 +7,7 @@ export const Route = createFileRoute('/account')({
     return (
       <div className='container'>
         <h1 className='contest-title fs-1 py-2'>Account</h1>
-        <div className="col-12 d-flex gap-3">
+        <div className="col-12 d-flex flex-column flex-sm-row gap-3">
         <TwitchButton />
         <UserStats />
         </div>

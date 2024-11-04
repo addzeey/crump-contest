@@ -9,7 +9,7 @@ export const VoteCard = ({entry} : {entry: Entry}) => {
         <div className="winner-wrap d-flex flex-column gap-1">
         <div className="card contest-card entry-card col-12 p-0">
             <h3 className="p-2 fs-5">{entry.discord_name}</h3>
-            <div className="image-wrap">
+            <div className="image-wrap d-none d-sm-block">
             {
                 entry && entry.isVideo == null ? (
                     <img src={imageUrl.data.publicUrl} title={entry.discord_name}/>

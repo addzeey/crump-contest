@@ -3,7 +3,7 @@ import { useUserQuery } from "../../utils/supabase";
 export const UserStats = () => {
     const { data: user, error, isLoading: loading } = useUserQuery();
     return (
-        <div className="nerdy-stats col-6">
+        <div className="nerdy-stats col-12 col-sm-6">
             <div className="contest-card">
                 <div className="card-body">
                     <h3 className="card-title">Nerdy Stats</h3>

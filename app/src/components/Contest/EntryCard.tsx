@@ -1,5 +1,5 @@
 import { Tables } from "../../database.types"
-import { faCheck, faFilm, faTrophy, faX } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faFilm, faSquareCheck, faTrophy, faX } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { getImageurl, getImageThumb } from "../../utils/supabase";
 type EntryCardProps = {
@@ -32,7 +32,7 @@ export const EntryCard = ({ entry, placement, isSelected, onVoteToggle, onPrevie
                     {isSelected ? (
                         <FontAwesomeIcon icon={faCheck} />
                     ) : (
-                        <FontAwesomeIcon icon={faX} />
+                        <FontAwesomeIcon icon={faCheck} />
                     )}
                 </button>
             ) : null

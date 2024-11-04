@@ -122,7 +122,7 @@ export const ContestSingle = () => {
                     <div className="contest-info">
                         <span className='badge bg-light text-dark fs-5 text-capitalize'>Status: {contestStatus}</span>
                         <h2 className='contest-title fs-1 py-2'>{contestData[0].title}</h2>
-                        <div className="date-wrap d-flex gap-4 fs-5">
+                        <div className="date-wrap d-flex flex-column flex-sm-row gap-4 fs-5">
                             <span className='start badge bg-light text-dark'>
                                 Start Date: {contestData[0].start_date ? new Date(contestData[0].start_date).toLocaleDateString() : 'N/A'}
                             </span>
@@ -144,7 +144,7 @@ export const ContestSingle = () => {
             }
             {votingEnabled && user != null? (
                 <section className="selected-votes text-white py-3">
-                    <div className="voting-header d-flex gap-2 ">
+                    <div className="voting-header d-flex flex-column flex-sm-row gap-2 ">
                     <h2>Selected Votes - <span>{selectedVotes.length} / 5</span></h2>
                     <button onClick={handleVoteSubmit} 
                         className={`submit-btn ${selectedVotes.length == 5 ? "active" : ""} d-inline-flex align-items-center gap-2`}>
@@ -159,9 +159,9 @@ export const ContestSingle = () => {
                             </p>
                         ) : null
                     }
-                    <div className="selected-votes-wrap d-flex gap-2 py-3">
+                    <div className="selected-votes-wrap d-flex flex- flex-wrap row gap-2 py-3">
                         {selectedVotes.map((vote) => (
-                            <div key={vote.id} className="selected-vote-item d-flex flex-column gap-1">
+                            <div key={vote.id} className="selected-vote-item d-flex flex-column gap-1 col-12 col-sm-2">
                                 <VoteCard entry={vote} />
                                 <button className='rm-vote w-100' onClick={() => handleDeleteVote(vote.id)}>Delete</button>
                             </div>

@@ -3,7 +3,7 @@ import { signInWithTwitch, signOut, useUserQuery } from "../../utils/supabase";
 export const TwitchButton = () => {
     const { data: user, error, isLoading: loading } = useUserQuery();
     return (
-        <div className="twitch-login contest-card col-6">
+        <div className="twitch-login contest-card col-12 col-sm-6">
             {loading ? (
                 <p>Loading...</p>
             ) : user ? (
