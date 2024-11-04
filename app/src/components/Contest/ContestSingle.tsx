@@ -4,7 +4,7 @@ import "../../assets/contest.scss";
 import { ContestEntries } from './ContestEntries';
 import { useCallback, useEffect, useState } from 'react';
 import { ContestWinners } from './ContestWinners';
-import { supabase } from '../../utils/supabase';
+import { supabase, updateContestStatus } from '../../utils/supabase';
 import { ContestVotes } from './ContestVotes';
 import { VoteCard } from './VoteCard';
 import { Tables } from '../../database.types';
@@ -26,7 +26,7 @@ export const ContestSingle = () => {
             contest: params.contestId,
         }),
     });
-    const { data: contestData, isLoading, error } = useGetContests(contest);
+    const { data: contestData, isLoading, error, refetch: refetchContest } = useGetContests(contest);
     const { data: user, error: userError, isLoading: userLoading } = useUserQuery();
     const { data: userVotes, isLoading: loadingVotes, error: errorVotes } = useGetUserVotes(contest);
     const { data: entries, isLoading: loadingEntries, error: entriesError } = useGetContestEntries(contest);
@@ -54,6 +54,7 @@ export const ContestSingle = () => {
                 console.log('Change received!', payload)
                 if(payload.new.status) {
                     setContestStatus(payload.new.status);
+                    refetchContest();
                 }
                 if(payload.new.status === 'voting') {
                     setVotingEnabled(true);
@@ -73,12 +74,18 @@ export const ContestSingle = () => {
             setContestStatus(contestData[0].status);
             if(contestData[0].status === 'voting') {
                 setVotingEnabled(true);
+            } else {
+                setVotingEnabled(false);
             }
         }
     }, [contestData]);
     
     const handleVoteChange = (entry: Entry) => {
         setSelectedVotes((prevVotes) => {
+            if(entry.canVote != true) {
+                setAlert({message: 'You can only vote for entries that are marked as voteable', type: 'info'});
+                return prevVotes;
+            }
             if (prevVotes.some(vote => vote.id === entry.id)) {
                 return prevVotes.filter((vote) => vote.id !== entry.id);
             } else if (prevVotes.length < 5) {
@@ -102,16 +109,31 @@ export const ContestSingle = () => {
             setAlert({message: message, type: 'danger'});
         }
     }
+
+    const handleStatusChange = (status: string) => {
+        updateContestStatus(contest, status);
+    }
     return (
         <div className='container'>
             {
                 user != null && userRoles && (userRoles.isAdmin || userRoles.isMod) ? (
                     <section id="admin-sect" className="text-white d-flex gap-2 align-items-center">
                     <h4 className='text-white'>Admin:</h4>
-                    <button className='btn btn-danger'>Edit Contest</button>
-                    <button className='btn btn-danger'>Finish Contest</button>
-                    <button className='btn btn-danger'>Open Voting</button>
-                    <button className='btn btn-danger'>Close Voting</button>
+                    {
+                        contestStatus === 'open' ? (
+                            <button onClick={() => handleStatusChange("voting")} className='btn btn-danger'>Open Voting</button>
+                        ) : null
+                    }
+                    {
+                        contestStatus === 'voting' ? (
+                            <button onClick={() => handleStatusChange("closed")} className='btn btn-warning'>Close and count votes</button>
+                        ) : null
+                    }
+                    {
+                        contestStatus === 'closed' ? (
+                            <button onClick={() => handleStatusChange("finished")} className='btn btn-danger'>Finish and reveal winners</button>
+                        ) : null
+                    }
                 </section>
                 ) : null
             }
@@ -142,7 +164,7 @@ export const ContestSingle = () => {
                     <ContestWinners winners={contestData[0].winners} />
                 ) : null
             }
-            {votingEnabled && user != null? (
+            {contestStatus === 'voting' && user != null? (
                 <section className="selected-votes text-white py-3">
                     <div className="voting-header d-flex flex-column flex-sm-row gap-2 ">
                     <h2>Selected Votes - <span>{selectedVotes.length} / 5</span></h2>

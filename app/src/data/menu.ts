@@ -7,7 +7,6 @@ interface MenuItem {
 }
 export const menuItems: MenuItem[] = [
     { name: 'Contests', url: '/', type: 'normal', target: null },
-    { name: 'how to submit', url: 'submit', type: 'normal', target: null},
     { name: 'Stream', url: 'https://www.twitch.tv/murdercrumpet', type: 'normal', target: '_blank' },
     { name: 'Login', url: '/account', type: 'normal', target: '' },
 ];

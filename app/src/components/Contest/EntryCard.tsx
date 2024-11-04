@@ -24,7 +24,7 @@ export const EntryCard = ({ entry, placement, isSelected, onVoteToggle, onPrevie
         <div className="card contest-card entry-card col-12 p-0">
             <div className="card-header d-flex justify-content-between">
             <h3 className="p-2 fs-5">{entry.discord_name}</h3>
-            {onVoteToggle && votingEnabled ? (
+            {onVoteToggle && votingEnabled && entry.canVote ? (
                 <button
                     className={`voting-btn ${isSelected ? 'active' : ''}`}
                     onClick={() => onVoteToggle(entry)}

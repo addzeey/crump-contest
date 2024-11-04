@@ -20,7 +20,11 @@ export const TwitchButton = () => {
                     </div>
                 </div>
             ) : (
+                <>
+                <p class="alert alert-info">No personal information or access to your twitch accounts is provided to us. It is only used to create an account connected to your twitch username/id, similar to how a game would do it for twitch drops.</p>
                 <button className="twitch-btn text-white py-3" onClick={signInWithTwitch}>Sign In with Twitch</button>
+                <p className="fs-6">If for any reason you want your twitch connection purged / terminated from my servers contact Addzeey on Discord/Twitch/Twitter, but this will remove your voting history</p>
+                </>
             )}
             {error && <p style={{ color: 'red' }}>{error.message}</p>}
         </div>

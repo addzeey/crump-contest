@@ -213,6 +213,18 @@ export const getUserVotes = async (contestId: string) => {
 	}
 	return data ?? null;
 }
+export const updateContestStatus = async (contestId: string, status: string) => {
+	const { data, error } = await supabase
+	.from('art_contest')
+	.update({ status: status })
+	.eq("id", contestId)
+	.select()
+	if (error) {
+		console.error(error);
+	}
+	return data;
+};  
+
 export const getUserRole = async (): Promise<Roles | null>=> {
 	const { data, error } = await supabase
 		.from("user_roles")
