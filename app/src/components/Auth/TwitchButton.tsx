@@ -2,8 +2,6 @@ import { signInWithTwitch, signOut, useUserQuery } from "../../utils/supabase";
 
 export const TwitchButton = () => {
     const { data: user, error, isLoading: loading } = useUserQuery();
-    console.log(user);
-
     return (
         <div className="twitch-login contest-card col-6">
             {loading ? (
@@ -22,7 +20,7 @@ export const TwitchButton = () => {
                     </div>
                 </div>
             ) : (
-                <button className="twitch-btn" onClick={signInWithTwitch}>Sign In with Twitch</button>
+                <button className="twitch-btn text-white py-3" onClick={signInWithTwitch}>Sign In with Twitch</button>
             )}
             {error && <p style={{ color: 'red' }}>{error.message}</p>}
         </div>

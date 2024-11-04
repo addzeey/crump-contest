@@ -6,8 +6,7 @@ import ReactPlayer from 'react-player/lazy'
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { useEffect, useRef, useState } from "react";
 type Entry = Tables<'entries'>
-export const ContestEntries = ({ contest, onVoteChange, selectedVotes, votingEnabled }: { contest: Tables<'art_contest'>, onVoteChange: (entryId: string) => void, selectedVotes: Entry[], votingEnabled: boolean }) => {
-    const { data: entries, isLoading, error } = useGetContestEntries(contest.id);
+export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, votingEnabled }: { contest: Tables<'art_contest'>, entries: Tables<'entries'>[], onVoteChange: (entryId: string) => void, selectedVotes: Entry[], votingEnabled: boolean }) => {
     const [previewEntry, setPreviewEntry] = useState<Tables<'entries'> | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [imageUrl, setImageUrl] = useState('');
@@ -73,8 +72,6 @@ export const ContestEntries = ({ contest, onVoteChange, selectedVotes, votingEna
         <>
             <h1 className="text-white">Contest Entries</h1>
             <div className="entry-wrap d-flex flex-wrap gap-3 py-3">
-                {isLoading && <p>Loading...</p>}
-                {error && <p>Error: {error.message}</p>}
                 {entries != null && entries.length > 0 ? (
                     entries.map((entry) => (
                         <div

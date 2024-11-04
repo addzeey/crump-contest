@@ -60,6 +60,30 @@
         }
     }
 }
+.submit-btn {
+    background: none;
+    border: 2px solid $primary;
+    color: $light;
+    transition: 0.3s;
+    height: 100%;
+    padding: 10px;
+
+    &:hover {
+        background: $tertiary;
+        color: $dark;
+        cursor: not-allowed;
+    }
+
+    &.active {
+        background: $primary;
+        color:  $light;
+
+        &:hover {
+            background: $dark;
+            cursor: pointer;
+        }
+    }
+}
 .contest-card {
     display: flex;
     flex-direction: column;

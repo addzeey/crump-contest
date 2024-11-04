@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 type Contest = Tables<"art_contest">;
 type Entry = Tables<"entries">;
 type Votes = Tables<"vote_entries">;
+type Roles = Tables<"user_roles">;
 export const supabase = createClient(
 	import.meta.env.VITE_SUPABASE_URL,
 	import.meta.env.VITE_SUPABASE_KEY_ANON
@@ -35,7 +36,7 @@ const getEntries = async (contestId: string): Promise<Entry[]> => {
 	}
 	return entries ?? [];
 };
-const getEntryById = async (ids: string[]): Promise<Entry[]> => {
+export const getEntryById = async (ids: string[]): Promise<Entry[]> => {
 	const { data: entries, error } = await supabase
 		.from("entries")
 		.select("*")
@@ -82,11 +83,18 @@ export const useGetContestEntries = (contestId: string) => {
 };
 
 export const useGetEntriesById = (id: string[]) => {
-	return useQuery<Entry[]>({
-		queryKey: ["entry", { id }],
-		queryFn: () => getEntryById(id),
-		refetchOnWindowFocus: false,
-	});
+    return useQuery<Entry[]>({
+        queryKey: ["entry", { id }],
+        queryFn: async () => {
+            try {
+                return await getEntryById(id);
+            } catch (error) {
+                console.error(error);
+                return [];
+            }
+        },
+        refetchOnWindowFocus: false,
+    });
 };
 export const useGetLatestContest = () => {
 	return useQuery<Contest[]>({
@@ -198,18 +206,39 @@ export const getUserVotes = async (contestId: string) => {
 	const { data, error } = await supabase
 		.from("vote_entries")
 		.select("*")
-		.eq("contest_id", contestId);
+		.eq("contest_id", contestId)
+		.single();
 	if (error) {
-		console.error(error);
+		return null;
 	}
-	return data ?? [];
+	return data ?? null;
+}
+export const getUserRole = async (): Promise<Roles | null>=> {
+	const { data, error } = await supabase
+		.from("user_roles")
+		.select("*")
+		.single();
+	if (error) {
+		return null;
+	}
+	return data ?? null;
+}
+
+export const useGetRoles = () => {
+	return useQuery({
+		queryKey: ['roles'],
+		queryFn: getUserRole,
+	});
 }
 // votes are stored as json in the database
-export const saveVote = async (contestId: string, votes: Votes[]) => {
+export const saveVote = async (contestId: string, votes: Entry[]) => {
+	console.log("i was called!");
+	
     // Pull out the entry id from the entry object
-    const votearray = votes.map((entry) => entry.id);
+    const votearray: string[] = votes.map((entry) => entry.id);
+	console.log("voteArray", votearray);
+
     // Convert the array to a JSON string
-    const voteJson = JSON.stringify(votearray);
 
     // Check if there is an existing vote entry for the contestId
     const { data: existingVote, error: fetchError } = await supabase
@@ -228,7 +257,7 @@ export const saveVote = async (contestId: string, votes: Votes[]) => {
         // Update the existing vote entry
         const { data, error } = await supabase
             .from("vote_entries")
-            .update({ votes: voteJson })
+            .update({ votes: votearray })
             .eq("contest_id", contestId)
             .select();
         if (error) {
@@ -243,7 +272,7 @@ export const saveVote = async (contestId: string, votes: Votes[]) => {
             .insert([
                 {
                     contest_id: contestId,
-                    votes: voteJson,
+                    votes: votearray,
                 },
             ])
             .select();
