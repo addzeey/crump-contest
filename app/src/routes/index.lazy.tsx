@@ -12,8 +12,8 @@ function Index() {
 
     const currentDate = new Date();
 
-    const currentContests = contests?.filter(contest => isBefore(currentDate, new Date(contest.end_date)));
-    const pastContests = contests?.filter(contest => !isBefore(currentDate, new Date(contest.end_date)));
+    const currentContests = contests?.filter(contest => contest.status != 'finished');
+    const pastContests = contests?.filter(contest => contest.status == 'finished');
 
     return (
         <section className="container pt-3">
