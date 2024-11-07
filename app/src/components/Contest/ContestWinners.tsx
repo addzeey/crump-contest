@@ -1,24 +1,25 @@
 import { Tables } from "../../database.types";
 import { EntryCard } from "./EntryCard";
 import {useGetEntriesById} from "../../utils/supabase";
+import { newWinners } from "../../data/newWinners";
 type Winner = {
-    place: number;
     uuid: string;
+    vote_count: number;
 };
 type Contest = Tables<'art_contest'>;
 type Winners = Winner[];
 export const ContestWinners = ({contest}: { contest: Contest}) => {
     const winners: Winners = contest.winners as Winners;
-    const {data: entries, isLoading, error} = useGetEntriesById(winners.map(winner => winner.uuid));
+    const tempWinners = [{"uuid": "34adc9d5-fee1-48bc-b800-6cb4a520943a", "place": 1}, {"uuid": "fba4eeaf-28d3-497e-9d60-b1661f033335", "place": 2}, {"uuid": "2fc61ae5-b81c-4747-860f-1e6351cc3f51", "place": 3}, {"uuid": "986378bd-9115-466c-a7d0-bb5fc516e0db", "place": 4}, {"uuid": "c7bae69d-2ae9-4887-9977-803fe30f46f9", "place": 5}]
+    const {data: entries, isLoading, error} = useGetEntriesById(tempWinners.map(winner => winner.uuid));
         // Create a mapping of uuid to place
         const winnerMap = winners.reduce((acc, winner) => {
-            acc[winner.uuid] = winner.place;
+            acc[winner.uuid] = winner.vote_count;
             return acc;
         }, {} as Record<string, number>);
-    
         // Sort entries based on the place value from the mapping
         const sortedEntries = entries?.sort((a, b) => {
-            return (winnerMap[a.id] || 0) - (winnerMap[b.id] || 0);
+            return winnerMap[b.id] - winnerMap[a.id];
         });
     return (
         <div className="results w-100 overflow-hidden">
