@@ -5,9 +5,10 @@ type Winner = {
     place: number;
     uuid: string;
 };
-type Entries = Tables<'art_contest'>;
+type Contest = Tables<'art_contest'>;
 type Winners = Winner[];
-export const ContestWinners = ({winners}: { winners: Winners}) => {
+export const ContestWinners = ({contest}: { contest: Contest}) => {
+    const winners: Winners = contest.winners as Winners;
     const {data: entries, isLoading, error} = useGetEntriesById(winners.map(winner => winner.uuid));
         // Create a mapping of uuid to place
         const winnerMap = winners.reduce((acc, winner) => {
@@ -21,7 +22,7 @@ export const ContestWinners = ({winners}: { winners: Winners}) => {
         });
     return (
         <div className="results w-100 overflow-hidden">
-            <h2 className="text-white">Results</h2>
+            <h2 className="text-white">Results - <span>{contest.total_voted} people voted</span></h2>
             <p className="text-white fs-5">The results are in! Check out the winners below:</p>
             <div className="results-wrap d-flex gap-2 py-3">
                 {

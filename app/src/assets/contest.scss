@@ -110,6 +110,15 @@
         }
     }
 }
+.contest-past {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    .contest-card {
+        max-height: none;
+        width: 32%;
+    }
+}
 .winner-item{
     max-height: 250px;
     width: 20%;
@@ -237,6 +246,15 @@
     .entry-wrap {
         .entry-item {
             width: 48%;
+        }
+    }
+    .contest-past {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        .contest-card {
+            max-height: none;
+            width: 100%;
         }
     }
 }

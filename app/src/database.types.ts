@@ -13,31 +13,37 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          display: boolean
           end_date: string | null
           id: string
           start_date: string | null
           status: string
           title: string | null
+          total_voted: number | null
           winners: Json | null
         }
         Insert: {
           created_at?: string
           description?: string | null
+          display?: boolean
           end_date?: string | null
           id?: string
           start_date?: string | null
           status?: string
           title?: string | null
+          total_voted?: number | null
           winners?: Json | null
         }
         Update: {
           created_at?: string
           description?: string | null
+          display?: boolean
           end_date?: string | null
           id?: string
           start_date?: string | null
           status?: string
           title?: string | null
+          total_voted?: number | null
           winners?: Json | null
         }
         Relationships: []

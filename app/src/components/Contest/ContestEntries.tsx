@@ -70,7 +70,7 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
     };
     return (
         <>
-            <h1 className="text-white">Contest Entries</h1>
+            <h1 className="text-white">Contest Entries - <span className="fw-normal fs-2">{entries.length} Total Entries </span></h1>
             <div className="entry-wrap d-flex flex-wrap gap-3 py-3">
                 {entries != null && entries.length > 0 ? (
                     entries.map((entry) => (

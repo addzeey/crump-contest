@@ -161,7 +161,7 @@ export const ContestSingle = () => {
             </section>
             {
                 contestData && contestData[0].status === 'finished' && contestData[0].winners != null ? (
-                    <ContestWinners winners={contestData[0].winners} />
+                    <ContestWinners contest={contestData[0]} />
                 ) : null
             }
             {contestStatus === 'voting' && user != null? (

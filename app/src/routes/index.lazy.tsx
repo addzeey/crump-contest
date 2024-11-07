@@ -14,6 +14,7 @@ function Index() {
 
     const currentContests = contests?.filter(contest => contest.status != 'finished');
     const pastContests = contests?.filter(contest => contest.status == 'finished');
+    pastContests?.sort((a, b) => isBefore(new Date(a.end_date), new Date(b.end_date)) ? 1 : -1);
 
     return (
         <section className="container pt-3">
@@ -29,7 +30,9 @@ function Index() {
                         <p className="error text-danger">Error loading contests</p>
                     ) : (
                         currentContests?.map((contest) => (
-                            <ContestCard key={contest.id} contest={contest} />
+                            contest.display ? (
+                                <ContestCard key={contest.id} contest={contest} />
+                            ) : null
                         ))
                     )
                 }
@@ -37,7 +40,7 @@ function Index() {
             <h2 className="sub-title text-uppercase py-3 border-top">
                 Past Contests
             </h2>
-            <div className="contest-wrap gap-2 py-3">
+            <div className="contest-wrap contest-past gap-2 py-3 d-flex flex-wrap gap-2">
                 {
                     isLoading ? (
                         <p className="loading">Loading Contests</p>
@@ -46,7 +49,9 @@ function Index() {
                         <p className="error">Error loading contests</p>
                     ) : (
                         pastContests?.map((contest) => (
-                            <ContestCard key={contest.id} contest={contest} />
+                            contest.display ? (
+                                <ContestCard key={contest.id} contest={contest} />
+                            ) : null
                         ))
                     )
                 }
