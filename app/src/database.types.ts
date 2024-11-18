@@ -15,6 +15,7 @@ export type Database = {
           description: string | null
           display: boolean
           end_date: string | null
+          galleryDisplay: boolean | null
           id: string
           start_date: string | null
           status: string
@@ -27,6 +28,7 @@ export type Database = {
           description?: string | null
           display?: boolean
           end_date?: string | null
+          galleryDisplay?: boolean | null
           id?: string
           start_date?: string | null
           status?: string
@@ -39,6 +41,7 @@ export type Database = {
           description?: string | null
           display?: boolean
           end_date?: string | null
+          galleryDisplay?: boolean | null
           id?: string
           start_date?: string | null
           status?: string

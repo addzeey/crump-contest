@@ -51,6 +51,7 @@ export const getLatestContest = async (): Promise<Contest[]> => {
 	const { data: art_contest, error } = await supabase
 		.from("art_contest")
 		.select("*")
+		.eq("galleryDisplay", true)
 		.eq("status", "finished")
 		.order("end_date", { ascending: false })
 		.limit(1);
