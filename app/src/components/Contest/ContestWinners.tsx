@@ -19,7 +19,7 @@ export const ContestWinners = ({contest}: { contest: Contest}) => {
         // Sort entries based on the place value from the mapping
         const sortedEntries = entries?.sort((a, b) => {
             return winnerMap[b.id] - winnerMap[a.id];
-        });
+        }).slice(0, 5);
     return (
         <div className="results w-100 overflow-hidden">
             <h2 className="text-white">Results - <span>{contest.total_voted} people voted</span></h2>

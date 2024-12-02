@@ -32,6 +32,7 @@
         width: 24%;
     }
 }
+
 .voting-btn {
     background: $dark;
     border: 0;
@@ -146,6 +147,37 @@
         color: $primary;
     }
 }
+.entry-navigation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    pointer-events: none;
+    z-index: 100;
+    justify-content: space-between;
+    align-items: center;
+
+    button {
+        background: $primary;
+        color: $light;
+        width: 50px;
+        height: 100px;
+        border: 0;
+        padding: 10px;
+        font-size: 1.5em;
+        pointer-events: all;
+        cursor: pointer;
+        transition: 0.3s;
+
+        &:hover {
+            background: $tertiary;
+            color: $dark;
+        }
+    }
+}
 .modal {
 
     button.btn.modal-close {
@@ -192,7 +224,7 @@
         height: 100%;
         display: flex;
         flex-direction: column;
-        overflow-y: hidden;
+        overflow-y: auto;
         background: $grey-dark;
         border: 2px solid $primary;
     }

@@ -5,6 +5,8 @@ import Modal from "../Model.tsx";
 import ReactPlayer from 'react-player/lazy'
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { useEffect, useRef, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 type Entry = Tables<'entries'>
 export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, votingEnabled }: { contest: Tables<'art_contest'>, entries: Tables<'entries'>[], onVoteChange: (entryId: string) => void, selectedVotes: Entry[], votingEnabled: boolean }) => {
     const [previewEntry, setPreviewEntry] = useState<Tables<'entries'> | null>(null);
@@ -60,6 +62,25 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
             setCurrentImageIndex((prevIndex) => (prevIndex - 1 + previewEntry.image_count) % previewEntry.image_count);
         }
     };
+
+    const handleNextEntry = () => {
+        if (previewEntry) {
+            const currentIndex = entries.findIndex(entry => entry.id === previewEntry.id);
+            const nextIndex = (currentIndex + 1) % entries.length;
+            setPreviewEntry(entries[nextIndex]);
+            setCurrentImageIndex(0); // Reset image index when changing entry
+        }
+    };
+
+    const handlePrevEntry = () => {
+        if (previewEntry) {
+            const currentIndex = entries.findIndex(entry => entry.id === previewEntry.id);
+            const prevIndex = (currentIndex - 1 + entries.length) % entries.length;
+            setPreviewEntry(entries[prevIndex]);
+            setCurrentImageIndex(0); // Reset image index when changing entry
+        }
+    };
+
     const preloadImages = (entry: Tables<'entries'>) => {
         if (entry.image_count > 0) {
             for (let i = 1; i <= entry.image_count; i++) {
@@ -92,6 +113,11 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
             </div>
             {
                 previewEntry != null ? (
+                    <>
+                    <div className="entry-navigation">
+                        <button className="btn" onClick={handlePrevEntry}><FontAwesomeIcon icon={faChevronLeft} /></button>
+                        <button className="btn" onClick={handleNextEntry}><FontAwesomeIcon icon={faChevronRight} /></button>
+                    </div>
                     <Modal toggleModal={() => toggleModal(setPreviewEntry)} dismissable={true} className={"entry-fullscreen"}>
                         <div className="content-modal-content">
                             <div ref={zoomAreaRef} className="entry-info">
@@ -166,7 +192,9 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
                                 }
                             </div>
                         </div>
+                        
                     </Modal>
+                    </>
                 ) : null
             }
         </>

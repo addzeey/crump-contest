@@ -17,6 +17,7 @@ export type Database = {
           end_date: string | null
           galleryDisplay: boolean | null
           id: string
+          max_votes: number
           start_date: string | null
           status: string
           title: string | null
@@ -30,6 +31,7 @@ export type Database = {
           end_date?: string | null
           galleryDisplay?: boolean | null
           id?: string
+          max_votes?: number
           start_date?: string | null
           status?: string
           title?: string | null
@@ -43,6 +45,7 @@ export type Database = {
           end_date?: string | null
           galleryDisplay?: boolean | null
           id?: string
+          max_votes?: number
           start_date?: string | null
           status?: string
           title?: string | null
