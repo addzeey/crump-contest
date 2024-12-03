@@ -35,7 +35,7 @@ export const ContestSingle = () => {
     const [votingEnabled, setVotingEnabled] = useState(false);
     const [selectedVotes, setSelectedVotes] = useState<Entry[]>([]);
     const  [alert, setAlert] = useState<Alert | null>(null);
-
+    const max_votes = contestData != null ? contestData[0].max_votes : 5;
     useEffect(() => {
         if (userVotes && !errorVotes) {
             const existingVotes = userVotes.votes;
@@ -88,10 +88,10 @@ export const ContestSingle = () => {
             }
             if (prevVotes.some(vote => vote.id === entry.id)) {
                 return prevVotes.filter((vote) => vote.id !== entry.id);
-            } else if (prevVotes.length < 5) {
+            } else if (prevVotes.length < max_votes) {
                 return [...prevVotes, entry];
             } else {
-                setAlert({message: 'You can only vote for up to 5 entries.', type: 'info'});
+                setAlert({message: `You can only vote for up to ${max_votes} entries.`, type: 'info'});
                 return prevVotes;
             }
         });
@@ -101,11 +101,11 @@ export const ContestSingle = () => {
         setSelectedVotes((prevVotes) => prevVotes.filter((vote) => vote.id !== entryId));
     };
     const handleVoteSubmit = () => {
-        if( selectedVotes.length == 5) {
+        if( selectedVotes.length == max_votes) {
             saveVote(contest,selectedVotes);
             setAlert({message: 'Vote submitted successfully', type: 'success'});
         } else {
-            const message = (selectedVotes.length > 5) ? 'You can only vote for up to 5 entries.' : 'You must select five entries to vote.';
+            const message = (selectedVotes.length > max_votes) ? `You can only vote for up to ${max_votes} entries.` : `You must select ${max_votes} entries to vote.`;
             setAlert({message: message, type: 'danger'});
         }
     }
@@ -164,12 +164,12 @@ export const ContestSingle = () => {
                     <ContestWinners contest={contestData[0]} />
                 ) : null
             }
-            {contestStatus === 'voting' && user != null? (
+            {contestData != null && contestStatus === 'voting' && user != null? (
                 <section className="selected-votes text-white py-3">
                     <div className="voting-header d-flex flex-column flex-sm-row gap-2 ">
-                    <h2>Selected Votes - <span>{selectedVotes.length} / 5</span></h2>
+                    <h2>Selected Votes - <span>{selectedVotes.length} / {contestData[0].max_votes}</span></h2>
                     <button onClick={handleVoteSubmit} 
-                        className={`submit-btn ${selectedVotes.length == 5 ? "active" : ""} d-inline-flex align-items-center gap-2`}>
+                        className={`submit-btn ${selectedVotes.length == max_votes ? "active" : ""} d-inline-flex align-items-center gap-2`}>
                             <FontAwesomeIcon icon={faCheckToSlot} />
                             Submit Vote
                     </button>
