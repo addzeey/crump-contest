@@ -8,7 +8,10 @@ const {
   ActionRowBuilder,
   InteractionType,
 } = require("discord.js");
+
 require("dotenv/config");
+const { createClient } = require("@supabase/supabase-js");
+import("node-fetch");
 
 const client = new Client({
   intents: [
@@ -17,6 +20,8 @@ const client = new Client({
     GatewayIntentBits.GuildMessageReactions,
   ],
 });
+
+const supabase = createClient(process.env.SUPA_URL, process.env.SUPA_TOKEN);
 
 messages = new Map();
 
@@ -53,8 +58,6 @@ client.on("interactionCreate", async (interaction) => {
       user: interaction.user.globalName,
     });
 
-    console.log(messages);
-
     if (attachments.size == 0) {
       await interaction.reply({
         content: `No attachments found in message`,
@@ -62,13 +65,13 @@ client.on("interactionCreate", async (interaction) => {
       });
       return;
     }
-
+    console.log(messages.get(interaction.user.id));
     // Create a text input field
     const username = new TextInputBuilder()
       .setCustomId("userNameInput")
       .setLabel("Contestant")
       .setStyle(TextInputStyle.Short)
-      .setValue(interaction.member.user.globalName)
+      .setValue(messages.get(interaction.user.id).user)
       .setRequired(true);
 
     const description = new TextInputBuilder()
@@ -110,9 +113,9 @@ client.on("interactionCreate", async (interaction) => {
       excludedImages.split(",").map((i) => parseInt(i) - 1)
     );
 
-    filteredAttachments = attachments.filter(
-      (_, index) => !excludedAttachments.has(index)
-    );
+    filteredAttachments = messages
+      .get(interaction.user.id)
+      .attachments.filter((_, index) => !excludedAttachments.has(index));
 
     await interaction.reply({
       content: `Username: ${userNameInput}\nDescription: ${descriptionInput}\nExcluded Images: ${excludedImages}\nOriginal message: ${
@@ -122,7 +125,80 @@ client.on("interactionCreate", async (interaction) => {
         .join("\n")}`,
       ephemeral: true,
     });
+
+    insertRes = await addEntry(
+      userNameInput,
+      descriptionInput,
+      filteredAttachments
+    );
+
+    var uploadNum = 1;
+    if (filteredAttachments) {
+      for (const attachment of filteredAttachments) {
+        var filePath = insertRes.uuid;
+        if (filteredAttachments.length > 1) {
+          filePath = `${insertRes.uuid}_${uploadNum}`;
+        }
+        await uploadFile(filePath, attachment);
+
+        uploadNum++;
+      }
+    }
   }
 });
+
+async function addEntry(user, description, attachments) {
+  try {
+    const { data, error } = await supabase
+      .from("entries")
+      .insert({
+        user: user,
+        description: description,
+        file_count: attachments.length,
+      })
+      .select("uuid");
+
+    if (error) {
+      console.error("error: ", error);
+      return null;
+    }
+
+    console.log("inserted: ", data);
+    return data[0];
+  } catch (err) {
+    console.error("unexpected error: ", err);
+    return null;
+  }
+}
+
+async function uploadFile(filePath, fileUrl) {
+  try {
+    const response = await fetch(fileUrl);
+    if (!response.ok) {
+      throw new Error("failed to fetch: ", response.statusText);
+    }
+
+    const fileData = await response.arrayBuffer();
+    const contentType = response.headers.get("content-type");
+
+    const { data, error } = await supabase.storage
+      .from("Submissions")
+      .upload(filePath, fileData, {
+        contentType,
+        upsert: true,
+      });
+
+    if (error) {
+      console.error("error: ", error);
+      return null;
+    }
+
+    console.log("File uploaded: ", filePath);
+    return data;
+  } catch (err) {
+    console.error("unexpected: ", err);
+    return null;
+  }
+}
 
 client.login(process.env.DISCORD_TOKEN);
