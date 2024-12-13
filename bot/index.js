@@ -17,12 +17,13 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.MessageContent,
   ],
 });
 
 const supabase = createClient(process.env.SUPA_URL, process.env.SUPA_TOKEN);
 
+// Map to store temporary data in
 messages = new Map();
 
 // Register the context menu command
@@ -32,12 +33,25 @@ client.once("ready", async () => {
     type: ApplicationCommandType.Message,
   };
 
-  const guild = client.guilds.cache.get("172998246602506241");
+  const guild = client.guilds.cache.get(process.env.GUILD_ID);
   await guild.commands.create(reviewCommand);
   console.log("Review command registered");
 });
 
 client.on("interactionCreate", async (interaction) => {
+  // Allow only users with the correct role to access the command
+  if (
+    !interaction.member.roles.cache.some(
+      (role) => role.id === process.env.MODERATION_ROLE_ID
+    )
+  ) {
+    await interaction.reply({
+      content: "You do not have permission to use this command",
+      ephemeral: true,
+    });
+    return null;
+  }
+
   if (
     interaction.isMessageContextMenuCommand() &&
     interaction.commandName === "Review Art Contest Submission"
@@ -52,12 +66,15 @@ client.on("interactionCreate", async (interaction) => {
       attachments.push(e.attachment);
     });
 
+    // temporarily store some data outside of the scope
     messages.set(interaction.user.id, {
       message: interaction.targetMessage.content,
       attachments: attachments,
-      user: interaction.user.globalName,
+      user: interaction.targetMessage.author.username,
+      user_id: interaction.user.id,
     });
 
+    // if there's no attachment, there's nothing to submit
     if (attachments.size == 0) {
       await interaction.reply({
         content: `No attachments found in message`,
@@ -65,8 +82,8 @@ client.on("interactionCreate", async (interaction) => {
       });
       return;
     }
-    console.log(messages.get(interaction.user.id));
-    // Create a text input field
+
+    // Create text input fields
     const username = new TextInputBuilder()
       .setCustomId("userNameInput")
       .setLabel("Contestant")
@@ -100,6 +117,7 @@ client.on("interactionCreate", async (interaction) => {
     // Show the modal to the user
     await interaction.showModal(modal);
   } else if (
+    // process submitted data from modal
     interaction.type === InteractionType.ModalSubmit &&
     interaction.customId === `modal_${interaction.user.id}`
   ) {
@@ -109,14 +127,15 @@ client.on("interactionCreate", async (interaction) => {
     const excludedImages =
       interaction.fields.getTextInputValue("exclusionInput");
 
+    // filter submission to only desired images
     excludedAttachments = new Set(
       excludedImages.split(",").map((i) => parseInt(i) - 1)
     );
-
     filteredAttachments = messages
       .get(interaction.user.id)
       .attachments.filter((_, index) => !excludedAttachments.has(index));
 
+    // show message to user of succesful submission
     await interaction.reply({
       content: `Username: ${userNameInput}\nDescription: ${descriptionInput}\nExcluded Images: ${excludedImages}\nOriginal message: ${
         messages.get(interaction.user.id).message
@@ -126,18 +145,21 @@ client.on("interactionCreate", async (interaction) => {
       ephemeral: true,
     });
 
+    // add entry to database using data from modal and original message, return is uuid of inserted row
     insertRes = await addEntry(
       userNameInput,
+      messages.get(interaction.user.id).user_id,
       descriptionInput,
       filteredAttachments
     );
 
+    // upload images, connect to uuid of previously inserted row using naming
     var uploadNum = 1;
     if (filteredAttachments) {
       for (const attachment of filteredAttachments) {
-        var filePath = insertRes.uuid;
+        var filePath = insertRes.id;
         if (filteredAttachments.length > 1) {
-          filePath = `${insertRes.uuid}_${uploadNum}`;
+          filePath = `${insertRes.id}_${uploadNum}`;
         }
         await uploadFile(filePath, attachment);
 
@@ -147,16 +169,20 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 
-async function addEntry(user, description, attachments) {
+// insert submission data into database
+async function addEntry(user, user_id, description, attachments) {
   try {
     const { data, error } = await supabase
       .from("entries")
       .insert({
-        user: user,
-        description: description,
-        file_count: attachments.length,
+        discord_name: user,
+        message: description,
+        image_count: attachments.length,
+        contest_id: "07fb9134-ea1b-45ea-aafd-1b72d80bc32c",
+        canvote: true,
+        discord_id: user_id,
       })
-      .select("uuid");
+      .select("id");
 
     if (error) {
       console.error("error: ", error);
@@ -171,6 +197,7 @@ async function addEntry(user, description, attachments) {
   }
 }
 
+// upload images to bucket
 async function uploadFile(filePath, fileUrl) {
   try {
     const response = await fetch(fileUrl);
