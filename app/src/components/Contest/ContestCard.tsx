@@ -2,11 +2,21 @@
 import { Tables } from "../../database.types.ts";
 import "../../assets/contest.scss";
 import { Link } from "@tanstack/react-router";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircle } from "@fortawesome/free-solid-svg-icons";
 export const ContestCard = ({ contest }: { contest: Tables<'art_contest'> }) => {
     const { status } = contest;
     return(
         <>
-        <div className="contest-card col-12 col-sm-12 col-lg-5">
+        <div className="contest-card col-12 col-sm-12 col-lg-5 position-relative">
+                {
+                    contest.nsfw ? (
+                        <span className="fs-6 nsfw-badge badge bg-danger position-absolute top-0 start-50 translate-middle">
+                            <FontAwesomeIcon icon={faCircle} />
+                            <span className="p-1">NSFW</span>
+                        </span>
+                    ) : null
+                }
             <h3>{contest.title}</h3>
             <p className="description">{contest.description}</p>
             <div className="date-wrap d-flex">

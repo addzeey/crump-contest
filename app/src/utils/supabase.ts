@@ -51,6 +51,7 @@ export const getLatestContest = async (): Promise<Contest[]> => {
 	const { data: art_contest, error } = await supabase
 		.from("art_contest")
 		.select("*")
+		.eq("nsfw", false)
 		.eq("galleryDisplay", true)
 		.eq("status", "finished")
 		.order("end_date", { ascending: false })
@@ -170,31 +171,23 @@ export const signOut = async () => {
 	if (error) throw error;
 };
 // if width is passed resize the image
-export const getImageurl = (url: string, width: number | null) => {
+export const getImageurl = (url: string, width: number | null, blur: boolean) => {
 	if(width != null){
-		return supabase.storage.from("crump-contest").getPublicUrl(`${url}.png`, {
-			transform: {
-				quality: 80,
-				width: width,
-				resize: 'contain', 
-			},
-		});
-	} else {
-		return supabase.storage.from("crump-contest").getPublicUrl(`${url}.png`, {
-			transform: {
-				quality: 80,
-			},
-		});
+		if(blur){
+			return `${import.meta.env.VITE_CDN_URL}cdn-cgi/image/width=${width}/blur=250/${url}.png`;
+		}
+		return `${import.meta.env.VITE_CDN_URL}cdn-cgi/image/width=${width}/${url}.png`;
 	}
+	if (blur) {
+		return `${import.meta.env.VITE_CDN_URL}cdn-cgi/image/blur=250/${url}.png`;
+	}
+	return `${import.meta.env.VITE_CDN_URL}${url}.png`;
 };
-export const getImageThumb = (url: string) => {
-	return supabase.storage.from("crump-contest").getPublicUrl(`${url}.png`, {
-		transform: {
-			quality: 60,
-			width: 250,
-			resize: 'contain',
-		},
-	});
+export const getImageThumb = (url: string, blur: boolean) => {
+	if (blur) {
+		return `${import.meta.env.VITE_CDN_URL}cdn-cgi/image/width=150,blur=250/${url}.png`;
+	}
+	return `${import.meta.env.VITE_CDN_URL}cdn-cgi/image/width=250/${url}.png`;
 }
 export const useGetUserVotes = (contestId: string) => {
 	return useQuery<Votes[]>({

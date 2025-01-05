@@ -6,9 +6,11 @@ import ReactPlayer from 'react-player/lazy'
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
+import { faChevronLeft, faChevronRight, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { setAgeConfirmation, getAgeConfirmation, setAlwaysShowNsfw, getAlwaysShowNsfw } from '../../utils/client'
 type Entry = Tables<'entries'>
-export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, votingEnabled }: { contest: Tables<'art_contest'>, entries: Tables<'entries'>[], onVoteChange: (entryId: string) => void, selectedVotes: Entry[], votingEnabled: boolean }) => {
+
+export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, votingEnabled, showNsfw }: { contest: Tables<'art_contest'>, entries: Tables<'entries'>[], onVoteChange: (entryId: string) => void, selectedVotes: Entry[], votingEnabled: boolean, showNsfw: boolean }) => {
     const [previewEntry, setPreviewEntry] = useState<Tables<'entries'> | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [imageUrl, setImageUrl] = useState('');
@@ -22,17 +24,18 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
     useEffect(() => {
         if (previewEntry) {
             setImageLoaded(false); // Set imageLoaded to false when generating the URL
-            const url = getImageurl(`${previewEntry?.contest_id}/${previewEntry?.id}${previewEntry?.image_count > 1 ? "_" + (currentImageIndex + 1) : ""}`, null);
+            const url = getImageurl(`${previewEntry?.contest_id}/${previewEntry?.id}${previewEntry?.image_count > 1 ? "_" + (currentImageIndex + 1) : ""}`, null, false);
             const img = new Image();
-            img.src = url.data.publicUrl;
+            img.src = url;
             img.onload = () => {
                 setTimeout(() => {
                     setImageLoaded(true);
                 }, 300);
             }; // Set imageLoaded to true when the image loads
-            setImageUrl(url.data.publicUrl);
+            setImageUrl(url);
         }
     }, [previewEntry, currentImageIndex]);
+
     useEffect(() => {
         // Function to prevent default pinch-zoom behavior on the document
         const preventPinchZoom = (e) => {
@@ -51,6 +54,7 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
             document.removeEventListener('touchmove', preventPinchZoom);
         };
     }, []);
+    
     const handleNextImage = () => {
         if (previewEntry) {
             setCurrentImageIndex((prevIndex) => (prevIndex + 1) % previewEntry.image_count);
@@ -91,7 +95,9 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
     };
     return (
         <>
+            <div className="entries-heading pt-2 d-flex gap-2 align-items-center">
             <h1 className="text-white">Contest Entries - <span className="fw-normal fs-2">{entries.length} Total Entries </span></h1>
+            </div>
             <div className="entry-wrap d-flex flex-wrap gap-3 py-3">
                 {entries != null && entries.length > 0 ? (
                     entries.map((entry) => (
@@ -106,7 +112,9 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
                                 onVoteToggle={onVoteChange}
                                 onPreview={() => setPreviewEntry(entry)}
                                 votingEnabled={votingEnabled}
+                                nsfwEnabled={(contest.nsfw && showNsfw) || !contest.nsfw}
                             />
+                            { showNsfw ? "NSFW" : "NOT NSFW" }
                         </div>
                     ))
                 ) : null}

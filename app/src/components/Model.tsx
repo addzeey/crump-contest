@@ -7,9 +7,10 @@ interface ModalProps {
     dismissable: boolean;
     className: string | null;
     toggleModal: () => void;
+    smallModal?: boolean;
 }
 
-const Modal: React.FC<ModalProps> = ({ children, toggleModal, dismissable, className }) => {
+const Modal: React.FC<ModalProps> = ({ children, toggleModal, dismissable, className, smallModal }) => {
 
     useEffect(() => {
         document.body.style.overflow = 'hidden'; // Prevent scrolling when the modal is open
@@ -23,7 +24,7 @@ const Modal: React.FC<ModalProps> = ({ children, toggleModal, dismissable, class
 
     return (
         <div className={`modal ${className}`}>
-            <div className="modal-content p-3">
+            <div className={`${smallModal ? "modal-sml" : ""} modal-content p-3`}>
                 {
                     dismissable ? (
                         <button onClick={toggleModal} className="btn modal-close"><FontAwesomeIcon icon={faX} /></button>

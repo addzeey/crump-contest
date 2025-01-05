@@ -8,7 +8,7 @@ type Winner = {
 };
 type Contest = Tables<'art_contest'>;
 type Winners = Winner[];
-export const ContestWinners = ({contest}: { contest: Contest}) => {
+export const ContestWinners = ({contest, nsfwEnabled}: { contest: Contest, nsfwEnabled: boolean}) => {
     const winners: Winners = contest.winners as Winners;
     const {data: entries, isLoading, error} = useGetEntriesById(winners.map(winner => winner.uuid));
         // Create a mapping of uuid to place
@@ -29,7 +29,7 @@ export const ContestWinners = ({contest}: { contest: Contest}) => {
                     sortedEntries != null && sortedEntries.length > 0 ? (
                         sortedEntries.map((winner, index) => (
                             <div key={index} className="winner-item">
-                            <EntryCard key={index} entry={winner} placement={index + 1} />
+                            <EntryCard key={index} entry={winner} placement={index + 1} nsfwEnabled={nsfwEnabled} />
                             </div>
                         ))
                     ) : null

@@ -91,8 +91,8 @@
     justify-content: space-between;
     height: 100%;
     max-height: 300px;
-    overflow: hidden;
-    object-fit: contain;
+    -o-object-fit: contain;
+       object-fit: contain;
     padding: 1rem;
     color: $light;
     border-radius: 0.5rem;
@@ -107,7 +107,8 @@
         img {
             width: 100%;
             height: auto;
-            object-fit: contain;
+            -o-object-fit: contain;
+               object-fit: contain;
         }
     }
 }
@@ -227,6 +228,15 @@
         overflow-y: auto;
         background: $grey-dark;
         border: 2px solid $primary;
+
+        &.modal-sml {
+            max-width: 50%;
+            min-width: unset;
+            width: unset;
+            height: -webkit-fit-content;
+            height: -moz-fit-content;
+            height: fit-content;
+        }
     }
     .content-modal-content {
         height: 100%;
@@ -248,7 +258,8 @@
     img.entry-image {
         height: 100%;
         width: auto;
-        object-fit: contain;
+        -o-object-fit: contain;
+           object-fit: contain;
         &.full {
             width: 100%;
             height: auto;

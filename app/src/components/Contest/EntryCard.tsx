@@ -9,10 +9,11 @@ type EntryCardProps = {
     onVoteToggle?: (entry: Entry) => void;
     onPreview?: (entry: Tables<'entries'>) => void;
     votingEnabled?: boolean;
+    nsfwEnabled?: boolean;
 };
 type Entry = Tables<'entries'>
-export const EntryCard = ({ entry, placement, isSelected, onVoteToggle, onPreview, votingEnabled }: EntryCardProps) => {
-    const imageUrl = getImageThumb(`${entry.contest_id}/${entry.id}${entry.image_count > 1 ? "_1" : ""}`);
+export const EntryCard = ({ entry, placement, isSelected, onVoteToggle, onPreview, votingEnabled, nsfwEnabled }: EntryCardProps) => {
+    const imageUrl = getImageThumb(`${entry.contest_id}/${entry.id}${entry.image_count > 1 ? "_1" : ""}`, !nsfwEnabled ? true: false);
     return (
         <div className="winner-wrap d-flex flex-column gap-1">
         {placement != null ? (
@@ -42,7 +43,7 @@ export const EntryCard = ({ entry, placement, isSelected, onVoteToggle, onPrevie
             <div onClick={() => onPreview(entry)} className="image-wrap">
             {
                 entry.isVideo == null ? (
-                    <img src={imageUrl.data.publicUrl} title={entry.discord_name}/>
+                    <img src={imageUrl} title={entry.discord_name}/>
                 ) : (
                     <>
                     <FontAwesomeIcon className="card-icon" icon={faFilm}/>

@@ -9,7 +9,7 @@ export const Route = createLazyFileRoute('/')({
 
 function Index() {
     const { data: contests, isLoading, error } = useGetContests();
-
+    document.title = `Contests - MurderCrumpet Art Showcase`
     const currentDate = new Date();
 
     const currentContests = contests?.filter(contest => contest.status != 'finished');
