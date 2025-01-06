@@ -1,5 +1,7 @@
 app/local/*
 app/node_modules/*
 app/supabase/*
+bot/node_modules/*
+bot/.env
 node_modules/*
 workers/*
