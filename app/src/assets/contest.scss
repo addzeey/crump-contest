@@ -306,7 +306,23 @@
         .modal-content {
             max-height: 90%;
             max-width: 100%;
+
+            &.modal-sml {
+                max-width: 100%;
+                min-width: unset;
+                width: unset;
+                height: -webkit-fit-content;
+                height: -moz-fit-content;
+                height: fit-content;
+                .btn-wrap {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                    gap: 10px;
+                }
+            }
         }
+        
     }
     p.message {
         font-size: 14px !important;
