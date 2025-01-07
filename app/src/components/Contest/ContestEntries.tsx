@@ -20,6 +20,7 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
         setCurrentImageIndex(0); // Reset image index when closing modal
     };
     const zoomAreaRef = useRef(null);
+    const transformWrapperRef = useRef(null);
 
     useEffect(() => {
         if (previewEntry) {
@@ -132,13 +133,18 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
                             <div ref={zoomAreaRef} className="entry-info">
                                 <div className="info-top d-flex flex-column flex-md-row gap-2">
                                     <h3 className="fs-5 badge bg-light text-dark m-0">{previewEntry.discord_name}</h3>
+                                    <div className="image-controls">
                                     {previewEntry.image_count > 1 && (
-                                        <div className="image-controls">
-                                            <span id="img-no" className="fs-5 badge">Image {currentImageIndex + 1} / {previewEntry.image_count}</span>
-                                            <button className="btn" onClick={handlePrevImage}>Previous</button>
-                                            <button className="btn" onClick={handleNextImage}>Next</button>
-                                        </div>
+                                        <>
+                                        <span id="img-no" className="fs-5 badge">Image {currentImageIndex + 1} / {previewEntry.image_count}</span>
+                                        <button className="btn" onClick={handlePrevImage}>Previous</button>
+                                        <button className="btn" onClick={handleNextImage}>Next</button>
+                                        </>                            
+                                        
                                     )}
+                                    <button className="btn btn-reset" onClick={() => transformWrapperRef.current.resetTransform()}>Reset Zoom</button>
+                                    </div>
+                                    
                                 </div>
                                 {
                                     previewEntry.message && (
@@ -175,7 +181,9 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
                                                     </div>
                                                 )
                                             }
+                                            
                                             <TransformWrapper
+                                                ref={transformWrapperRef}
                                                 minScale={0.1}
                                                 limitToBounds={false}
                                                 centerContent={true}
