@@ -66,6 +66,7 @@ export type Database = {
           discord_name: string
           id: string
           image_count: number
+          isGif: boolean
           isVideo: string | null
           message: string | null
         }
@@ -77,6 +78,7 @@ export type Database = {
           discord_name: string
           id?: string
           image_count?: number
+          isGif?: boolean
           isVideo?: string | null
           message?: string | null
         }
@@ -88,6 +90,7 @@ export type Database = {
           discord_name?: string
           id?: string
           image_count?: number
+          isGif?: boolean
           isVideo?: string | null
           message?: string | null
         }

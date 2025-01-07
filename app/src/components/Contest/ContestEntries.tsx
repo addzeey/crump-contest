@@ -24,7 +24,8 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
     useEffect(() => {
         if (previewEntry) {
             setImageLoaded(false); // Set imageLoaded to false when generating the URL
-            const url = getImageurl(`${previewEntry?.contest_id}/${previewEntry?.id}${previewEntry?.image_count > 1 ? "_" + (currentImageIndex + 1) : ""}`, null, false);
+            const fileType = previewEntry.isGif ? "gif" : null;
+            const url = getImageurl(`${previewEntry?.contest_id}/${previewEntry?.id}${previewEntry?.image_count > 1 ? "_" + (currentImageIndex + 1) : ""}`, null, false, fileType);
             const img = new Image();
             img.src = url;
             img.onload = () => {
@@ -104,7 +105,7 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
                         <div
                             key={entry.id}
                             className="entry-item"
-                            onMouseEnter={() => preloadImages(entry)}
+                            onMouseDown={() => preloadImages(entry)}
                         >
                             <EntryCard
                                 entry={entry}

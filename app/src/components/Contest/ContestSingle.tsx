@@ -50,7 +50,6 @@ export const ContestSingle = () => {
         if (userVotes && !errorVotes) {
             const existingVotes = userVotes.votes;
         if(existingVotes != null && existingVotes.length > 0 && entries != null) {
-            console.log('Existing votes', existingVotes);
             const voteEntries = entries.filter((entry) => existingVotes.includes(entry.id));
             setSelectedVotes(voteEntries);
         }
@@ -70,7 +69,6 @@ export const ContestSingle = () => {
         // Set up a real-time subscription to the 'contest' table
         const artContest = supabase.channel('contest_updates')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'art_contest' }, payload => {
-                console.log('Change received!', payload)
                 if(payload.new.status) {
                     setContestStatus(payload.new.status);
                     refetchContest();
@@ -144,7 +142,6 @@ export const ContestSingle = () => {
     }
 
     const handleAgeConfirm = (confirm: boolean, always: boolean) => {
-        console.log("should toggle")
         setAgeConfirmed(confirm);
         setAgeConfirmation(confirm);
         if(always) {

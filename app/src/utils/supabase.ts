@@ -171,23 +171,31 @@ export const signOut = async () => {
 	if (error) throw error;
 };
 // if width is passed resize the image
-export const getImageurl = (url: string, width: number | null, blur: boolean) => {
-	if(width != null){
-		if(blur){
-			return `${import.meta.env.VITE_CDN_URL}cdn-cgi/image/width=${width}/blur=250/${url}.png`;
-		}
-		return `${import.meta.env.VITE_CDN_URL}cdn-cgi/image/width=${width}/${url}.png`;
-	}
-	if (blur) {
-		return `${import.meta.env.VITE_CDN_URL}cdn-cgi/image/blur=250/${url}.png`;
-	}
-	return `${import.meta.env.VITE_CDN_URL}${url}.png`;
+export const getImageurl = (url: string, width: number | null, blur: boolean, fileType: string | null) => {
+    const baseUrl = `${import.meta.env.VITE_CDN_URL}${width != null || blur ? "cdn-cgi/image/" : ""}`;
+    const fileExtension = fileType ? fileType : "png";
+    const params = [];
+    if (width != null) {
+        params.push(`width=${width}`);
+    }
+    if (blur) {
+        params.push("blur=250");
+    }
+
+    const paramString = params.length > 0 ? `${params.join("/")}/` : "";
+	
+    return `${baseUrl}${paramString}${url}.${fileExtension}`;
 };
-export const getImageThumb = (url: string, blur: boolean) => {
-	if (blur) {
-		return `${import.meta.env.VITE_CDN_URL}cdn-cgi/image/width=150,blur=250/${url}.png`;
-	}
-	return `${import.meta.env.VITE_CDN_URL}cdn-cgi/image/width=250/${url}.png`;
+export const getImageThumb = (url: string, blur: boolean, fileType: string | null) => {
+    const baseUrl = `${import.meta.env.VITE_CDN_URL}cdn-cgi/image/width=150`;
+    const format = fileType && fileType !== "png" ? ",format=png" : "";
+    const fileExtension = fileType ? fileType : "png";
+
+    if (blur) {
+        return `${baseUrl},blur=250${format}/${url}.${fileExtension}`;
+    } else {
+        return `${baseUrl}${format}/${url}.${fileExtension}`;
+    }
 }
 export const useGetUserVotes = (contestId: string) => {
 	return useQuery<Votes[]>({
@@ -238,12 +246,8 @@ export const useGetRoles = () => {
 }
 // votes are stored as json in the database
 export const saveVote = async (contestId: string, votes: Entry[]) => {
-	console.log("i was called!");
-	
     // Pull out the entry id from the entry object
     const votearray: string[] = votes.map((entry) => entry.id);
-	console.log("voteArray", votearray);
-
     // Convert the array to a JSON string
 
     // Check if there is an existing vote entry for the contestId

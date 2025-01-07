@@ -13,7 +13,8 @@ type EntryCardProps = {
 };
 type Entry = Tables<'entries'>
 export const EntryCard = ({ entry, placement, isSelected, onVoteToggle, onPreview, votingEnabled, nsfwEnabled }: EntryCardProps) => {
-    const imageUrl = getImageThumb(`${entry.contest_id}/${entry.id}${entry.image_count > 1 ? "_1" : ""}`, !nsfwEnabled ? true: false);
+    const fileType = entry.isGif ? "gif" : null;
+    const imageUrl = getImageThumb(`${entry.contest_id}/${entry.id}${entry.image_count > 1 ? "_1" : ""}`, !nsfwEnabled ? true: false, fileType);
     return (
         <div className="winner-wrap d-flex flex-column gap-1">
         {placement != null ? (
