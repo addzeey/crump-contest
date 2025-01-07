@@ -30,6 +30,7 @@ const getEntries = async (contestId: string): Promise<Entry[]> => {
 	const { data: entries, error } = await supabase
 		.from("entries")
 		.select("*")
+		.order("created_at", { ascending: true })
 		.eq("contest_id", contestId);
 	if (error) {
 		console.error(error);
