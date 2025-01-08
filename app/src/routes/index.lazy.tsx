@@ -40,7 +40,7 @@ function Index() {
             <h2 className="sub-title text-uppercase py-3 border-top">
                 Past Contests
             </h2>
-            <div className="contest-wrap contest-past gap-2 py-3 d-flex flex-wrap gap-2">
+            <div className="contest-wrap contest-past gap-2 py-3 d-flex flex-wrap gap-3">
                 {
                     isLoading ? (
                         <p className="loading">Loading Contests</p>

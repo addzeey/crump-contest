@@ -290,7 +290,7 @@ export const ContestSingle = () => {
                                 <strong> NSFW </strong>
                                 content. By clicking the button below, you confirm that you are over 18 years of age.
                             </p>
-                            <div className="btn-wrap d-flex gap-2">
+                            <div className="btn-wra d-flex gap-2">
                             <button className="btn btn-primary" onClick={() => handleAgeConfirm(true, false)}>I am over 18, <span className="fw-bold">I will toggle NSFW content</span></button>
                             <button className="btn btn-danger" onClick={()=> handleAgeConfirm(true, true)}>I am over 18, <span className="fw-bold">Always Show NSFW when i visit</span></button>
                             </div>

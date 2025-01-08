@@ -22,15 +22,32 @@ header {
         list-style-type: none;
         display: flex;
         gap: 10px;
+        margin: 0px;
+
+        &.menu {
+            background-color: $primary;
+            width: 100%;
+        }
 
         li {
+
+            &.acc-link {
+                margin-left: auto;
+            }
+            
             a{
                 text-decoration: none;
                 color: $light;
                 transition: 0.2s;
+                transform: scale(1);
+                display: block;
+                padding: 4px 10px;
+                border-radius: 4px;
 
                 &:hover {
-                    color: $tertiary;
+                    color: $light;
+                    background-color: $dark;
+                    transform: scale(1.1);
                 }
                 &.menu-primary {
                     color: $primary;

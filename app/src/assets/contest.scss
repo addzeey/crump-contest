@@ -116,9 +116,11 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
+
     .contest-card {
         max-height: none;
-        width: 32%;
+        width: 49%;
+        min-height: 300px;
     }
 }
 .winner-item{

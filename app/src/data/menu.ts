@@ -4,9 +4,10 @@ interface MenuItem {
     url: string;
     type: MenuItemType;
     target: string | null
+    icon: string | null
 }
 export const menuItems: MenuItem[] = [
-    { name: 'Contests', url: '/', type: 'normal', target: null },
-    { name: 'Stream', url: 'https://www.twitch.tv/murdercrumpet', type: 'normal', target: '_blank' },
-    { name: 'Login', url: '/account', type: 'normal', target: '' },
+    { name: 'Contests', url: '/', type: 'normal', target: null, icon: "" },
+    { name: 'Twitch Stream', url: 'https://www.twitch.tv/murdercrumpet', type: 'normal', target: '_blank', icon: "faTwitch" },
+    { name: 'Login', url: '/account', type: 'normal', target: '', icon: "" },
 ];

@@ -6,12 +6,14 @@ import { UserCardCompact } from "./Account/UserCardCompact";
 export const Header = () => {
     const { data: user, error, isLoading: loading } = useUserQuery();
     return (
-        <header className="container d-flex flex-column flex-lg-row">
-            <h1>MurderCrumpet Contests</h1>
-            <nav>
-                <ul className="menu gap-4">
+        <header className="container d-flex flex-column gap-4">
+            <Link to="/" className="logo">
+            <img src="/images/Bannerartcontest.png" alt="" className="contest-logo w-100" />
+            </Link>
+            <nav className="w-100">
+                <ul className="menu gap-2 py-2 px-3 d-flex justify-content-center align-items-center rounded-3">
                     {menuItems.map((item, index) => (
-                        <li key={index}>
+                        <li key={index} className={`${item.name == "Login" ? "acc-link" : ""}`}>
                             {
                             item.name == "Login" && user ? (
                                 <UserCardCompact user={user} />
