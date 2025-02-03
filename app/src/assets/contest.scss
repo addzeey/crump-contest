@@ -336,7 +336,44 @@
         .entry-item {
             width: 100%;
         }
-    }
+
+        .contest-card {
+            transition: 0.2s;
+            &:hover {
+                background: #3e3e3e;
+                transform: unset;
+    
+                .card-icon{
+                    font-size: 50px;
+                    color: $lighter !important;
+                }
+            }
+
+            .voting-btn {
+                background: $dark;
+                border: 0;
+                color: $light;
+                transition: none;
+                aspect-ratio: 1 / 1;
+                height: 100%;
+                padding: 10px;
+                display: flex;
+                flex-direction: column;
+                align-content: center;
+                justify-content: center;
+                align-items: center;
+                &:hover,
+                &:active {
+                    background: #e24051;
+                    color: $dark;
+                }
+                &.active {
+                    background: #e24051;
+                    color: $light;
+                }
+            }
+        }
+
     .entry-info {
         .image-controls {
             display: flex !important;
@@ -369,4 +406,5 @@
         background-color: $tertiary;
         color: $dark;
     }
+}
 }

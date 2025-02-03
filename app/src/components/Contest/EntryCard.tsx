@@ -37,6 +37,10 @@ export const EntryCard = ({ entry, placement, isSelected, onVoteToggle, onPrevie
                         <FontAwesomeIcon icon={faCheck} />
                     )}
                 </button>
+            ) : votingEnabled ?  (
+                <span className="badge bg-dark d-flex flex-column justify-content-center">
+                Disabled
+                </span>
             ) : null
             }
             </div>
