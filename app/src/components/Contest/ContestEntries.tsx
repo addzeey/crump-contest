@@ -7,7 +7,7 @@ import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft, faChevronRight, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-import { setAgeConfirmation, getAgeConfirmation, setAlwaysShowNsfw, getAlwaysShowNsfw } from '../../utils/client'
+import { setAgeConfirmation, getAgeConfirmation, setAlwaysShowNsfw, getAlwaysShowNsfw, parseUrls } from '../../utils/client'
 type Entry = Tables<'entries'>
 
 export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, votingEnabled, showNsfw }: { contest: Tables<'art_contest'>, entries: Tables<'entries'>[], onVoteChange: (entryId: string) => void, selectedVotes: Entry[], votingEnabled: boolean, showNsfw: boolean }) => {
@@ -23,6 +23,17 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
     const transformWrapperRef = useRef(null);
 
     useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const entryId = params.get('entry');
+        if (entryId) {
+            const entry = entries.find(entry => entry.id === entryId);
+            if (entry) {
+                setPreviewEntry(entry);
+            }
+        }
+    }, [entries]);
+
+    useEffect(() => {
         if (previewEntry) {
             setImageLoaded(false); // Set imageLoaded to false when generating the URL
             const fileType = previewEntry.isGif ? "gif" : null;
@@ -35,6 +46,9 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
                 }, 300);
             }; // Set imageLoaded to true when the image loads
             setImageUrl(url);
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.set('entry', previewEntry.id);
+            window.history.replaceState({}, '', newUrl);
         }
     }, [previewEntry, currentImageIndex]);
 
@@ -148,7 +162,7 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
                                 </div>
                                 {
                                     previewEntry.message && (
-                                        <p className="message text-white fs-6 fw-medium">{previewEntry.message}</p>
+                                        <p className="message text-white fs-6 fw-medium" dangerouslySetInnerHTML={{ __html: parseUrls(previewEntry.message) }}></p>
                                     )
                                 }
                                 {

@@ -22,3 +22,8 @@ export const getAlwaysShowNsfw = (): boolean => {
     // if set return true
     return localStorage.getItem('showNsfw') === 'true';
 }
+
+
+export const parseUrls = (text: string) => {
+    return text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+}
