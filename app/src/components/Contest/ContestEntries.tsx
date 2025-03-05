@@ -130,7 +130,6 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
                                 votingEnabled={votingEnabled}
                                 nsfwEnabled={(contest.nsfw && showNsfw) || !contest.nsfw}
                             />
-                            { showNsfw ? "NSFW" : "NOT NSFW" }
                         </div>
                     ))
                 ) : null}
