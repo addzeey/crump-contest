@@ -1,10 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { menuItems } from "../data/menu";
 import "../assets/header.scss";
-import { useSession, useUserQuery, signOut } from "../utils/supabase";
+import { useSession, useUserQuery, signOut, useGetRoles } from "../utils/supabase";
 import { UserCardCompact } from "./Account/UserCardCompact";
 export const Header = () => {
     const { data: user, error, isLoading: loading } = useUserQuery();
+    const { data: userRoles, isLoading: rolesLoading, error: rolesError } = useGetRoles();
     return (
         <header className="container d-flex flex-column gap-4">
             <Link to="/" className="logo">
@@ -23,7 +24,15 @@ export const Header = () => {
                             }
                             
                         </li>
-                    ))}
+                    ))
+                    }
+                    <li>
+                    {
+                        user != null && userRoles && (userRoles.isAdmin || userRoles.isMod) ? (
+                            <Link to={"/admin"}>Admin</Link>
+                        ) : null
+                    }
+                    </li>
                 </ul>
             </nav>
         </header>

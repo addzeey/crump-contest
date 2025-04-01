@@ -69,6 +69,7 @@ export type Database = {
           isGif: boolean
           isVideo: string | null
           message: string | null
+          type_index: number[] | null
         }
         Insert: {
           canVote?: boolean
@@ -81,6 +82,7 @@ export type Database = {
           isGif?: boolean
           isVideo?: string | null
           message?: string | null
+          type_index?: number[] | null
         }
         Update: {
           canVote?: boolean
@@ -93,6 +95,7 @@ export type Database = {
           isGif?: boolean
           isVideo?: string | null
           message?: string | null
+          type_index?: number[] | null
         }
         Relationships: [
           {
@@ -109,6 +112,7 @@ export type Database = {
           created_at: string
           id: number
           isAdmin: boolean
+          isEditor: boolean | null
           isMod: boolean
           user_id: string | null
         }
@@ -116,6 +120,7 @@ export type Database = {
           created_at?: string
           id?: never
           isAdmin?: boolean
+          isEditor?: boolean | null
           isMod?: boolean
           user_id?: string | null
         }
@@ -123,8 +128,39 @@ export type Database = {
           created_at?: string
           id?: never
           isAdmin?: boolean
+          isEditor?: boolean | null
           isMod?: boolean
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      vods: {
+        Row: {
+          auto_publish: boolean
+          chapters: Json
+          created_at: string
+          id: string
+          status: Database["public"]["Enums"]["vod_status"]
+          streamed_at: string
+          title: string
+        }
+        Insert: {
+          auto_publish?: boolean
+          chapters: Json
+          created_at?: string
+          id: string
+          status?: Database["public"]["Enums"]["vod_status"]
+          streamed_at?: string
+          title: string
+        }
+        Update: {
+          auto_publish?: boolean
+          chapters?: Json
+          created_at?: string
+          id?: string
+          status?: Database["public"]["Enums"]["vod_status"]
+          streamed_at?: string
+          title?: string
         }
         Relationships: []
       }
@@ -165,10 +201,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      count_votes: {
+        Args: {
+          contest_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
-      [_ in never]: never
+      chapters: "StartOffset" | "Game"
+      vod_status: "recording" | "encoding" | "uploading" | "complete" | "error"
     }
     CompositeTypes: {
       [_ in never]: never

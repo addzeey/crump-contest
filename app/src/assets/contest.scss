@@ -257,6 +257,10 @@
         aspect-ratio: 16 / 9;
         background: $dark;
     }
+    .hosted-player video {
+        aspect-ratio: 16 / 9;
+        background: $dark;
+    }
     img.entry-image {
         height: 100%;
         width: auto;
@@ -301,6 +305,14 @@
             max-height: none;
             width: 100%;
         }
+    }
+}
+
+.admin {
+
+    .contest-card {
+        max-height: unset;
+        
     }
 }
 @media only screen and (max-width: 600px) {

@@ -16,10 +16,12 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as AccountImport } from './routes/account'
 import { Route as ObsLatestImport } from './routes/obs.latest'
 import { Route as ContestContestIdImport } from './routes/contest.$contestId'
+import { Route as AdminEntryContestidImport } from './routes/admin/entry.$contestid'
 
 // Create Virtual Routes
 
 const IndexLazyImport = createFileRoute('/')()
+const AdminIndexLazyImport = createFileRoute('/admin/')()
 
 // Create/Update Routes
 
@@ -33,6 +35,11 @@ const IndexLazyRoute = IndexLazyImport.update({
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/index.lazy').then((d) => d.Route))
 
+const AdminIndexLazyRoute = AdminIndexLazyImport.update({
+  path: '/admin/',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/admin/index.lazy').then((d) => d.Route))
+
 const ObsLatestRoute = ObsLatestImport.update({
   path: '/obs/latest',
   getParentRoute: () => rootRoute,
@@ -40,6 +47,11 @@ const ObsLatestRoute = ObsLatestImport.update({
 
 const ContestContestIdRoute = ContestContestIdImport.update({
   path: '/contest/$contestId',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AdminEntryContestidRoute = AdminEntryContestidImport.update({
+  path: '/admin/entry/$contestid',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -75,6 +87,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ObsLatestImport
       parentRoute: typeof rootRoute
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminIndexLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/admin/entry/$contestid': {
+      id: '/admin/entry/$contestid'
+      path: '/admin/entry/$contestid'
+      fullPath: '/admin/entry/$contestid'
+      preLoaderRoute: typeof AdminEntryContestidImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -85,6 +111,8 @@ export const routeTree = rootRoute.addChildren({
   AccountRoute,
   ContestContestIdRoute,
   ObsLatestRoute,
+  AdminIndexLazyRoute,
+  AdminEntryContestidRoute,
 })
 
 /* prettier-ignore-end */
@@ -98,7 +126,9 @@ export const routeTree = rootRoute.addChildren({
         "/",
         "/account",
         "/contest/$contestId",
-        "/obs/latest"
+        "/obs/latest",
+        "/admin/",
+        "/admin/entry/$contestid"
       ]
     },
     "/": {
@@ -112,6 +142,12 @@ export const routeTree = rootRoute.addChildren({
     },
     "/obs/latest": {
       "filePath": "obs.latest.tsx"
+    },
+    "/admin/": {
+      "filePath": "admin/index.lazy.tsx"
+    },
+    "/admin/entry/$contestid": {
+      "filePath": "admin/entry.$contestid.tsx"
     }
   }
 }

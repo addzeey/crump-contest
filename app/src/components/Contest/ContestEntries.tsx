@@ -17,7 +17,7 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
     const [imageLoaded, setImageLoaded] = useState(true);
     const toggleModal = (setState: React.Dispatch<React.SetStateAction<any>>) => {
         setState(null);
-        setCurrentImageIndex(0); // Reset image index when closing modal
+        setCurrentImageIndex(0);
     };
     const zoomAreaRef = useRef(null);
     const transformWrapperRef = useRef(null);
@@ -35,16 +35,28 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
 
     useEffect(() => {
         if (previewEntry) {
-            setImageLoaded(false); // Set imageLoaded to false when generating the URL
-            const fileType = previewEntry.isGif ? "gif" : null;
-            const url = getImageurl(`${previewEntry?.contest_id}/${previewEntry?.id}${previewEntry?.image_count > 1 ? "_" + (currentImageIndex + 1) : ""}`, null, false, fileType);
+            setImageLoaded(false);
+            // Determine file type based on type_index if it exists and isGif is true
+            console.log("types", previewEntry.type_index);
+            
+            const fileType = previewEntry.isGif && Array.isArray(previewEntry.type_index)
+                ? (previewEntry.type_index.includes(currentImageIndex + 1) ? "gif" : "png")
+                : (previewEntry.isGif ? "gif" : "png");
+            
+            const url = getImageurl(
+                `${previewEntry?.contest_id}/${previewEntry?.id}${previewEntry?.image_count > 1 ? "_" + (currentImageIndex + 1) : ""}`,
+                null,
+                false,
+                fileType
+            );
+            
             const img = new Image();
             img.src = url;
             img.onload = () => {
                 setTimeout(() => {
                     setImageLoaded(true);
                 }, 300);
-            }; // Set imageLoaded to true when the image loads
+            };
             setImageUrl(url);
             const newUrl = new URL(window.location.href);
             newUrl.searchParams.set('entry', previewEntry.id);
@@ -53,24 +65,20 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
     }, [previewEntry, currentImageIndex]);
 
     useEffect(() => {
-        // Function to prevent default pinch-zoom behavior on the document
         const preventPinchZoom = (e) => {
-            // Check if the event target is inside the zoomAreaRef
             if (zoomAreaRef.current && zoomAreaRef.current.contains(e.target)) {
-                return; // Allow pinch-zoom inside the component
+                return;
             }
             if (e.touches.length > 1) {
-                e.preventDefault(); // Prevent pinch-zoom globally
+                e.preventDefault();
             }
         };
-
         document.addEventListener('touchmove', preventPinchZoom, { passive: false });
-
         return () => {
             document.removeEventListener('touchmove', preventPinchZoom);
         };
     }, []);
-    
+
     const handleNextImage = () => {
         if (previewEntry) {
             setCurrentImageIndex((prevIndex) => (prevIndex + 1) % previewEntry.image_count);
@@ -88,7 +96,7 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
             const currentIndex = entries.findIndex(entry => entry.id === previewEntry.id);
             const nextIndex = (currentIndex + 1) % entries.length;
             setPreviewEntry(entries[nextIndex]);
-            setCurrentImageIndex(0); // Reset image index when changing entry
+            setCurrentImageIndex(0);
         }
     };
 
@@ -97,18 +105,23 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
             const currentIndex = entries.findIndex(entry => entry.id === previewEntry.id);
             const prevIndex = (currentIndex - 1 + entries.length) % entries.length;
             setPreviewEntry(entries[prevIndex]);
-            setCurrentImageIndex(0); // Reset image index when changing entry
+            setCurrentImageIndex(0);
         }
     };
 
     const preloadImages = (entry: Tables<'entries'>) => {
         if (entry.image_count > 0) {
             for (let i = 1; i <= entry.image_count; i++) {
+                const index = i - 1;
+                const fileType = entry.isGif && Array.isArray(entry.type_index)
+                    ? (entry.type_index.includes(index) ? "gif" : "png")
+                    : "png";
                 const img = new Image();
-                img.src = `${import.meta.env.VITE_CDN_URL}${entry.contest_id}/${entry.id}${entry.image_count > 1 ? "_" + i : ""}.png`;
+                img.src = `${import.meta.env.VITE_CDN_URL}${entry.contest_id}/${entry.id}${entry.image_count > 1 ? "_" + i : ""}.${fileType}`;
             }
         }
     };
+
     return (
         <>
             <div className="entries-heading pt-2 d-flex gap-2 align-items-center">
@@ -173,6 +186,7 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
                                                 volume={0.1}
                                                 width="100%"
                                                 height="auto"
+                                                className="hosted-player"
                                             />
                                         ) : (
                                             <ReactPlayer
