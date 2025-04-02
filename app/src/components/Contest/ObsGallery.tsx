@@ -2,33 +2,40 @@ import { Tables } from "../../database.types.ts";
 import { useGetContestEntries } from "../../utils/supabase.ts";
 import { Fade } from "react-slideshow-image";
 import "react-slideshow-image/dist/styles.css";
-import { useState } from "react"; // Import useState to track the current slide
+import { useState } from "react";
 
 export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
     const { data: entries, isLoading, error } = useGetContestEntries(contest.id);
 
-    // Construct an array of image URLs
+    // Construct an array of image URLs, only including PNGs
     const images = entries
         ?.filter((entry) => entry.isVideo === null) // Filter out entries where isVideo is not null
         .flatMap((entry) => {
             const baseUrl = `${import.meta.env.VITE_CDN_URL}${entry.contest_id}/${entry.id}`;
             if (entry.image_count > 1) {
-                return Array.from({ length: entry.image_count }, (_, i) => `${baseUrl}_${i + 1}.png`);
+                return Array.from({ length: entry.image_count }, (_, i) => {
+                    // Check if this index should be a GIF based on type_index
+                    const isGif = entry.isGif && Array.isArray(entry.type_index) && entry.type_index.includes(i+1);
+                    // Only include if it's not a GIF
+                    return !isGif ? `${baseUrl}_${i + 1}.png` : null;
+                }).filter(Boolean); // Remove null entries
             } else {
-                return [`${baseUrl}.png`];
+                // For single image, only include if it's not a GIF
+                const isGif = entry.isGif && (!Array.isArray(entry.type_index) || entry.type_index.includes(0));
+                return !isGif ? [`${baseUrl}.png`] : [];
             }
         }) || [];
 
     // State to track the current slide index
     const [currentSlide, setCurrentSlide] = useState(0);
 
-    // preload images only once
+    // Preload images only once
     if (images.length > 0) {
         images.forEach((url) => {
             new Image().src = url;
-        }
-        );
+        });
     }
+
     return (
         <>
             <div className="obs-wrap">
@@ -47,16 +54,16 @@ export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
                         {/* Foreground Slideshow */}
                         <Fade
                             autoplay={true}
-                            duration={5000}
+                            duration={10000}
                             transitionDuration={500}
                             infinite={true}
                             arrows={false}
                             pauseOnHover={false}
                             onStartChange={(_oldIndex: number, newIndex: number) => {
                                 setTimeout(() => {
-                                    setCurrentSlide(newIndex)
+                                    setCurrentSlide(newIndex);
                                 }, 100);
-                            }} // Sync background with foreground
+                            }}
                         >
                             {images.map((url, index) => (
                                 <div className="each-slide" key={index}>
