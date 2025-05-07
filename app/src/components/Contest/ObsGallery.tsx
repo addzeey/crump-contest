@@ -54,8 +54,9 @@ export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
         return dims && dims.height > 2 * dims.width;
     };
 
-    const PAN_SPEED = 100; // px per second
+    const PAN_SPEED = 200; // px per second
     const MIN_DURATION = 5; // seconds
+    const DEFAULT_DURATION = 10000; // ms
 
     const getPanDuration = (idx: number) => {
         const dims = imageDims[idx];
@@ -64,6 +65,16 @@ export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
         const panDistance = Math.max(dims.height - containerHeight, 0);
         const duration = panDistance / PAN_SPEED;
         return `${Math.max(duration, MIN_DURATION)}s`;
+    };
+
+    // New: get pan duration in ms for slideshow
+    const getPanDurationMs = (idx: number) => {
+        const dims = imageDims[idx];
+        if (!dims) return DEFAULT_DURATION;
+        const containerHeight = window.innerHeight * 0.8;
+        const panDistance = Math.max(dims.height - containerHeight, 0);
+        const duration = panDistance / PAN_SPEED;
+        return Math.max(duration, MIN_DURATION - 1) * 1000;
     };
 
     return (
@@ -91,7 +102,7 @@ export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
                         {/* Foreground Slideshow */}
                         <Fade
                             autoplay={true}
-                            duration={10000}
+                            duration={shouldPan(currentSlide) ? getPanDurationMs(currentSlide) : DEFAULT_DURATION}
                             transitionDuration={500}
                             infinite={true}
                             arrows={false}
