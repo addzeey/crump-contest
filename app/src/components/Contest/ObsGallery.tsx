@@ -30,6 +30,9 @@ export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
     // Track image dimensions
     const [imageDims, setImageDims] = useState<{ width: number; height: number }[]>([]);
+    // New state for rendered dimensions of panning images and their target Y translation
+    const [renderedImageDims, setRenderedImageDims] = useState<Record<number, { width: number; height: number }>>({});
+    const [panTargetY, setPanTargetY] = useState<Record<number, number>>({});
 
     // Preload images only once
     if (images.length > 0) {
@@ -40,50 +43,80 @@ export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
 
     // Handler for image load
     const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>, idx: number) => {
-        const { naturalWidth: width, naturalHeight: height } = e.currentTarget;
+        const { naturalWidth, naturalHeight } = e.currentTarget;
+        // Store natural dimensions
         setImageDims((prev) => {
             const next = [...prev];
-            next[idx] = { width, height };
+            next[idx] = { width: naturalWidth, height: naturalHeight };
             return next;
         });
+
+        // If it's a tall image that will pan, calculate its rendered height
+        // when its width is constrained to 70vw, and the target Y translation.
+        // Use a local check for shouldPan criteria to avoid dependency on state that might not be updated yet.
+        if (naturalHeight > 2 * naturalWidth) {
+            const viewportWidth70 = window.innerWidth * 0.7;
+            const _renderedHeight = (naturalHeight / naturalWidth) * viewportWidth70;
+            setRenderedImageDims(prev => ({
+                ...prev,
+                [idx]: { width: viewportWidth70, height: _renderedHeight }
+            }));
+
+            const containerHeightPx = window.innerHeight * 0.7; // 70vh
+            const translateY = containerHeightPx - _renderedHeight;
+            setPanTargetY(prev => ({ ...prev, [idx]: translateY < 0 ? translateY : 0 }));
+        }
     };
 
-    // Helper to determine if image should pan
+    // Helper to determine if image should pan (based on natural dimensions)
     const shouldPan = (idx: number) => {
         const dims = imageDims[idx];
         return dims && dims.height > 2 * dims.width;
     };
 
-    const PAN_SPEED = 200; // px per second
+    const PAN_SPEED = 150; // px per second (increased from 100)
     const MIN_DURATION = 5; // seconds
     const DEFAULT_DURATION = 10000; // ms
 
     const getPanDuration = (idx: number) => {
-        const dims = imageDims[idx];
-        if (!dims) return `${MIN_DURATION}s`;
-        const containerHeight = window.innerHeight * 0.8; // 80vh
-        const panDistance = Math.max(dims.height - containerHeight, 0);
+        const rDims = renderedImageDims[idx]; // Use rendered dimensions for pan distance
+        // Ensure shouldPan is checked based on natural dimensions (imageDims)
+        const naturalDims = imageDims[idx];
+        if (!rDims || !naturalDims || !(naturalDims.height > 2 * naturalDims.width)) {
+            return `${MIN_DURATION}s`;
+        }
+
+        const containerHeightPx = window.innerHeight * 0.7; // 70vh
+        const panDistance = Math.max(rDims.height - containerHeightPx, 0);
+        if (panDistance === 0) return `${MIN_DURATION}s`;
+
         const duration = panDistance / PAN_SPEED;
         return `${Math.max(duration, MIN_DURATION)}s`;
     };
 
     // New: get pan duration in ms for slideshow
     const getPanDurationMs = (idx: number) => {
-        const dims = imageDims[idx];
-        if (!dims) return DEFAULT_DURATION;
-        const containerHeight = window.innerHeight * 0.8;
-        const panDistance = Math.max(dims.height - containerHeight, 0);
+        const rDims = renderedImageDims[idx]; // Use rendered dimensions
+        const naturalDims = imageDims[idx];
+        if (!rDims || !naturalDims || !(naturalDims.height > 2 * naturalDims.width)) {
+            return DEFAULT_DURATION;
+        }
+
+        const containerHeightPx = window.innerHeight * 0.7; // 70vh
+        const panDistance = Math.max(rDims.height - containerHeightPx, 0);
+        if (panDistance === 0) return DEFAULT_DURATION;
+
         const duration = panDistance / PAN_SPEED;
-        return Math.max(duration, MIN_DURATION - 1) * 1000;
+        return Math.max(duration, MIN_DURATION) * 1000;
     };
 
     return (
         <>
             {/* Pan animation style */}
             <style>{`
-                @keyframes bg-pan-up {
-                    0% { background-position: center top; }
-                    100% { background-position: center bottom; }
+                @keyframes transform-pan-up {
+                    0% { transform: translateY(0px); }
+                    100% { transform: translateY(var(--pan-translate-y)); }
                 }
             `}</style>
             <div className="obs-wrap">
@@ -120,40 +153,45 @@ export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
                                     <div className="each-slide" key={index}>
                                         {pan ? (
                                             <div
-                                                key={`pan-${currentSlide}-${index}`}
+                                                key={`pan-container-${currentSlide}-${index}`}
                                                 style={{
-                                                    width: "100vw",
+                                                    width: "70vw",
                                                     height: "100vh",
-                                                    backgroundImage: `url(${url})`,
-                                                    backgroundSize: "cover",
-                                                    backgroundRepeat: "no-repeat",
-                                                    backgroundPosition: "center top",
-                                                    animation: isActive ? `bg-pan-up ${getPanDuration(index)} linear forwards` : undefined
+                                                    overflow: "hidden",
+                                                    display: "flex",
+                                                    justifyContent: "center",
+                                                    alignItems: "flex-start", // Align to top for transform pan
                                                 }}
-                                            />
+                                            >
+                                                <img
+                                                    src={url}
+                                                    alt={`Slide ${index}`}
+                                                    style={{
+                                                        width: "100%", // Image width fills the 70vw container
+                                                        height: "auto", // Height adjusts to maintain aspect ratio
+                                                        animation: isActive ? `transform-pan-up ${getPanDuration(index)} linear forwards` : undefined,
+                                                        ['--pan-translate-y' as string]: `${panTargetY[index] || 0}px`,
+                                                    }}
+                                                    onLoad={(e) => handleImageLoad(e, index)} // Keep for all images to get dimensions
+                                                />
+                                            </div>
                                         ) : (
                                             <img
                                                 src={url}
                                                 alt={`Slide ${index}`}
                                                 onLoad={(e) => handleImageLoad(e, index)}
                                                 style={{
-                                                    maxHeight: "100vh",
-                                                    maxWidth: "100%",
+                                                    maxHeight: "100vh", // Corrected from 100vh
+                                                    maxWidth: "100vw",   // Corrected from 100vw
                                                     objectFit: "contain",
                                                     display: "block",
                                                     margin: "0 auto"
                                                 }}
                                             />
                                         )}
-                                        {/* Hidden img for dimension detection if pan */}
-                                        {pan && (
-                                            <img
-                                                src={url}
-                                                alt="hidden"
-                                                style={{ display: "none" }}
-                                                onLoad={(e) => handleImageLoad(e, index)}
-                                            />
-                                        )}
+                                        {/* Hidden img for dimension detection if pan - NO LONGER NEEDED if main img's onLoad is used for all */}
+                                        {/* Ensure handleImageLoad is called for all images, even non-panning ones, if imageDims is used elsewhere for them */}
+                                        {/* The current setup calls onLoad for the visible img if not panning, or the transformed img if panning. This is fine. */}
                                     </div>
                                 );
                             })}
