@@ -248,24 +248,44 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
                                         if (isCurrentVideo) {
                                             if (isVideo === "attatched") {
                                                 return (
-                                                    <ReactPlayer
-                                                        url={`${import.meta.env.VITE_CDN_URL}${previewEntry.contest_id}/${previewEntry.id}${previewEntry.image_count > 1 ? "_" + (currentImageIndex + 1) : ""}.mp4`}
-                                                        controls
-                                                        volume={0.1}
-                                                        width="100%"
-                                                        height="auto"
+                                                    <div className="video-wrapper" style={{height: 'calc(100vh - 200px)', minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%'}}>
+                                                        <ReactPlayer
+                                                            url={`${import.meta.env.VITE_CDN_URL}${previewEntry.contest_id}/${previewEntry.id}${previewEntry.image_count > 1 ? "_" + (currentImageIndex + 1) : ""}.mp4`}
+                                                            controls={true}
+                                                            volume={0.1}
+                                                            width="auto"
+                                                            height="100%"
+                                                            style={{maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', display: 'block', margin: 'auto'}}
+                                                            config={{
+                                                                file: {
+                                                                    attributes: {
+                                                                        style: {objectFit: 'contain', width: '100%', height: '95%'}
+                                                                }
+                                                            }
+                                                        }}
                                                         className="hosted-player"
                                                     />
+                                                </div>
                                                 );
                                             } else {
                                                 return (
-                                                    <ReactPlayer
-                                                        url={previewEntry.image_count > 1 ? `${previewEntry.isVideo}${currentImageIndex + 1}` : previewEntry.isVideo}
-                                                        controls
-                                                        width="100%"
-                                                        height="auto"
+                                                    <div className="video-wrapper" style={{height: 'calc(100vh - 200px)', minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%'}}>
+                                                        <ReactPlayer
+                                                            url={previewEntry.image_count > 1 ? `${previewEntry.isVideo}${currentImageIndex + 1}` : previewEntry.isVideo}
+                                                            controls={true}
+                                                            width="auto"
+                                                            height="100%"
+                                                            style={{maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', display: 'block', margin: 'auto'}}
+                                                            config={{
+                                                                file: {
+                                                                    attributes: {
+                                                                        style: {objectFit: 'contain', width: '100%', height: '95%'}
+                                                                }
+                                                            }
+                                                        }}
                                                         className="yt-player"
                                                     />
+                                                </div>
                                                 );
                                             }
                                         } else if (isCurrentGif) {
@@ -304,7 +324,7 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
                                             );
                                         } else {
                                             return (
-                                                <div className="image-wrapper" style={{height: 'calc(100vh - 120px)', minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                                <div className="image-wrapper" style={{height: 'calc(100vh - 200px)', minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                                                     {!imageLoaded && (
                                                         <div className="loading-spinner">
                                                             <div className="spinner-border text-light" role="status">
