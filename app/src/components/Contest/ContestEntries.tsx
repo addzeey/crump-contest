@@ -18,6 +18,10 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
     const toggleModal = (setState: React.Dispatch<React.SetStateAction<any>>) => {
         setState(null);
         setCurrentImageIndex(0);
+        // Remove 'entry' param from URL
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('entry');
+        window.history.replaceState({}, '', newUrl);
     };
     const zoomAreaRef = useRef(null);
     const transformWrapperRef = useRef(null);
@@ -36,7 +40,7 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
     useEffect(() => {
         if (previewEntry) {
             setImageLoaded(false);
-            // Reset zoom/position on new image or entry
+                // Reset zoom/position on new image or entry
             if (transformWrapperRef.current && typeof transformWrapperRef.current.resetTransform === 'function') {
                 transformWrapperRef.current.resetTransform();
             }
