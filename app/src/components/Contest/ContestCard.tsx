@@ -1,14 +1,15 @@
-
-import { Tables } from "../../database.types.ts";
+import { Tables } from "../../database.types";
 import "../../assets/contest.scss";
 import { Link } from "@tanstack/react-router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircle } from "@fortawesome/free-solid-svg-icons";
 export const ContestCard = ({ contest }: { contest: Tables<'art_contest'> }) => {
-    const { status } = contest;
+    const { status, channel } = contest;
+    // Determine color variant based on channel
+    const colorClass = channel === "crazymangovr" ? "contest-card-mango" : "contest-card-primary";
     return(
         <>
-        <div className="contest-card col-12 col-sm-12 col-lg-5 position-relative">
+        <div className={`contest-card col-12 col-sm-12 col-lg-5 position-relative ${colorClass}`}>
                 {
                     contest.nsfw ? (
                         <span className="fs-6 nsfw-badge badge bg-danger position-absolute top-0 start-50 translate-middle">

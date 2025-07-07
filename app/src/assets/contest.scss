@@ -112,6 +112,32 @@
         }
     }
 }
+.contest-card-primary {
+    border: 1px solid $primary;
+}
+.contest-card-mango {
+    border: 1px solid $primary-mango;
+
+    .btn-cta {
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: 0.2s;
+        padding: 10px 10px;
+        text-decoration: none;
+        font-size: 20px;    
+        font-weight: 700;
+        &.primary {
+          background: $primary-mango;
+          color: $light;
+        
+          &:hover {
+            background: $tertiary-mango;
+            color: $dark;
+          }
+        }
+      }
+}
 .contest-past {
     display: flex;
     flex-wrap: wrap;

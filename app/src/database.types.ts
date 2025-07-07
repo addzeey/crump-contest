@@ -7,10 +7,16 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
   public: {
     Tables: {
       art_contest: {
         Row: {
+          channel: Database["public"]["Enums"]["channel"]
           created_at: string
           description: string | null
           display: boolean
@@ -26,6 +32,7 @@ export type Database = {
           winners: Json | null
         }
         Insert: {
+          channel?: Database["public"]["Enums"]["channel"]
           created_at?: string
           description?: string | null
           display?: boolean
@@ -41,6 +48,7 @@ export type Database = {
           winners?: Json | null
         }
         Update: {
+          channel?: Database["public"]["Enums"]["channel"]
           created_at?: string
           description?: string | null
           display?: boolean
@@ -54,6 +62,84 @@ export type Database = {
           title?: string | null
           total_voted?: number | null
           winners?: Json | null
+        }
+        Relationships: []
+      }
+      auth_tokens: {
+        Row: {
+          access_token: string
+          created_at: string
+          expires_at: string
+          refresh_token: string
+          service_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          expires_at: string
+          refresh_token: string
+          service_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          expires_at?: string
+          refresh_token?: string
+          service_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      crumps: {
+        Row: {
+          accessory: string | null
+          accessory2: string | null
+          arms: string | null
+          background: string | null
+          body: string | null
+          effect: string | null
+          expression: string | null
+          hair: string | null
+          head: string | null
+          id: number
+          legs: string | null
+          twitch_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          accessory?: string | null
+          accessory2?: string | null
+          arms?: string | null
+          background?: string | null
+          body?: string | null
+          effect?: string | null
+          expression?: string | null
+          hair?: string | null
+          head?: string | null
+          id?: never
+          legs?: string | null
+          twitch_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          accessory?: string | null
+          accessory2?: string | null
+          arms?: string | null
+          background?: string | null
+          body?: string | null
+          effect?: string | null
+          expression?: string | null
+          hair?: string | null
+          head?: string | null
+          id?: never
+          legs?: string | null
+          twitch_id?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -107,6 +193,72 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          created_at: string
+          house: Database["public"]["Enums"]["crump_house"] | null
+          id: string
+          points: number | null
+          rank: string | null
+          twitch_id: string | null
+          user_id: string
+          vote_count: number | null
+        }
+        Insert: {
+          created_at?: string
+          house?: Database["public"]["Enums"]["crump_house"] | null
+          id?: string
+          points?: number | null
+          rank?: string | null
+          twitch_id?: string | null
+          user_id: string
+          vote_count?: number | null
+        }
+        Update: {
+          created_at?: string
+          house?: Database["public"]["Enums"]["crump_house"] | null
+          id?: string
+          points?: number | null
+          rank?: string | null
+          twitch_id?: string | null
+          user_id?: string
+          vote_count?: number | null
+        }
+        Relationships: []
+      }
+      streamlink_tokens: {
+        Row: {
+          expires_at: string
+          service_id: string
+          token: string
+        }
+        Insert: {
+          expires_at: string
+          service_id: string
+          token: string
+        }
+        Update: {
+          expires_at?: string
+          service_id?: string
+          token?: string
+        }
+        Relationships: []
+      }
+      unique_games: {
+        Row: {
+          game_name: string | null
+          id: number
+        }
+        Insert: {
+          game_name?: string | null
+          id?: never
+        }
+        Update: {
+          game_name?: string | null
+          id?: never
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -137,27 +289,33 @@ export type Database = {
       vods: {
         Row: {
           auto_publish: boolean
+          channel: string
           chapters: Json
           created_at: string
           id: string
+          platform: Database["public"]["Enums"]["vod_platform"]
           status: Database["public"]["Enums"]["vod_status"]
           streamed_at: string
           title: string
         }
         Insert: {
           auto_publish?: boolean
+          channel?: string
           chapters: Json
           created_at?: string
-          id: string
+          id?: string
+          platform?: Database["public"]["Enums"]["vod_platform"]
           status?: Database["public"]["Enums"]["vod_status"]
-          streamed_at?: string
+          streamed_at: string
           title: string
         }
         Update: {
           auto_publish?: boolean
+          channel?: string
           chapters?: Json
           created_at?: string
           id?: string
+          platform?: Database["public"]["Enums"]["vod_platform"]
           status?: Database["public"]["Enums"]["vod_status"]
           streamed_at?: string
           title?: string
@@ -202,14 +360,27 @@ export type Database = {
     }
     Functions: {
       count_votes: {
-        Args: {
-          contest_id: string
-        }
+        Args: { p_contest_id: string }
+        Returns: undefined
+      }
+      get_provider_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      populate_unique_games: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      update_profile_vote_count: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
     }
     Enums: {
+      channel: "murdercrumpet" | "crazymangovr"
       chapters: "StartOffset" | "Game"
+      crump_house: "coom" | "nub" | "gub" | "xdd"
+      vod_platform: "twitch" | "kick"
       vod_status: "recording" | "encoding" | "uploading" | "complete" | "error"
     }
     CompositeTypes: {
@@ -218,27 +389,33 @@ export type Database = {
   }
 }
 
-type PublicSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
-  PublicTableNameOrOptions extends
-    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-        PublicSchema["Views"])
-    ? (PublicSchema["Tables"] &
-        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -246,20 +423,24 @@ export type Tables<
     : never
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -267,20 +448,24 @@ export type TablesInsert<
     : never
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -288,29 +473,47 @@ export type TablesUpdate<
     : never
 
 export type Enums<
-  PublicEnumNameOrOptions extends
-    | keyof PublicSchema["Enums"]
-    | { schema: keyof Database },
-  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
-    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      channel: ["murdercrumpet", "crazymangovr"],
+      chapters: ["StartOffset", "Game"],
+      crump_house: ["coom", "nub", "gub", "xdd"],
+      vod_platform: ["twitch", "kick"],
+      vod_status: ["recording", "encoding", "uploading", "complete", "error"],
+    },
+  },
+} as const

@@ -36,27 +36,70 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
     useEffect(() => {
         if (previewEntry) {
             setImageLoaded(false);
-            // Determine file type based on type_index if it exists and isGif is true
-            console.log("types", previewEntry.type_index);
-            
-            const fileType = previewEntry.isGif && Array.isArray(previewEntry.type_index)
-                ? (previewEntry.type_index.includes(currentImageIndex + 1) ? "gif" : "png")
-                : (previewEntry.isGif ? "gif" : "png");
-            
-            const url = getImageurl(
-                `${previewEntry?.contest_id}/${previewEntry?.id}${previewEntry?.image_count > 1 ? "_" + (currentImageIndex + 1) : ""}`,
-                null,
-                false,
-                fileType
-            );
-            
-            const img = new Image();
-            img.src = url;
-            img.onload = () => {
-                setTimeout(() => {
-                    setImageLoaded(true);
-                }, 300);
-            };
+            // Reset zoom/position on new image or entry
+            if (transformWrapperRef.current && typeof transformWrapperRef.current.resetTransform === 'function') {
+                transformWrapperRef.current.resetTransform();
+            }
+            const typeIndex: number[] = (previewEntry.type_index as any) || [];
+            const isGif = previewEntry.isGif;
+            const isVideo = previewEntry.isVideo;
+            let fileType = "png";
+            let url = "";
+            let isCurrentGif = false;
+            let isCurrentVideo = false;
+            if (previewEntry.image_count === 1) {
+                // Only one media: use isVideo/isGif
+                if (isVideo) {
+                    isCurrentVideo = true;
+                } else if (isGif) {
+                    fileType = "gif";
+                    isCurrentGif = true;
+                }
+            } else {
+                // Multiple media: use type_index
+                if (isVideo && typeIndex.includes(currentImageIndex)) {
+                    isCurrentVideo = true;
+                } else if (isGif && typeIndex.includes(currentImageIndex)) {
+                    fileType = "gif";
+                    isCurrentGif = true;
+                }
+            }
+            if (isCurrentVideo) {
+                if (isVideo === "attatched") {
+                    url = `${import.meta.env.VITE_CDN_URL}${previewEntry.contest_id}/${previewEntry.id}${previewEntry.image_count > 1 ? "_" + (currentImageIndex + 1) : ""}.mp4`;
+                } else {
+                    url = previewEntry.image_count > 1 ? `${previewEntry.isVideo}${currentImageIndex + 1}` : previewEntry.isVideo;
+                }
+                setImageLoaded(true);
+            } else if (isCurrentGif) {
+                url = getImageurl(
+                    `${previewEntry.contest_id}/${previewEntry.id}${previewEntry.image_count > 1 ? "_" + (currentImageIndex + 1) : ""}`,
+                    null,
+                    false,
+                    "gif"
+                );
+                const img = new Image();
+                img.src = url;
+                img.onload = () => {
+                    setTimeout(() => {
+                        setImageLoaded(true);
+                    }, 300);
+                };
+            } else {
+                url = getImageurl(
+                    `${previewEntry.contest_id}/${previewEntry.id}${previewEntry.image_count > 1 ? "_" + (currentImageIndex + 1) : ""}`,
+                    null,
+                    false,
+                    fileType
+                );
+                const img = new Image();
+                img.src = url;
+                img.onload = () => {
+                    setTimeout(() => {
+                        setImageLoaded(true);
+                    }, 300);
+                };
+            }
             setImageUrl(url);
             const newUrl = new URL(window.location.href);
             newUrl.searchParams.set('entry', previewEntry.id);
@@ -178,61 +221,122 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
                                     )
                                 }
                                 {
-                                    previewEntry.isVideo != null ? (
-                                        previewEntry.isVideo == "attatched" ? (
-                                            <ReactPlayer
-                                                url={`${import.meta.env.VITE_CDN_URL}${previewEntry.contest_id}/${previewEntry.id}.mp4`}
-                                                controls
-                                                volume={0.1}
-                                                width="100%"
-                                                height="auto"
-                                                className="hosted-player"
-                                            />
-                                        ) : (
-                                            <ReactPlayer
-                                                url={previewEntry.isVideo}
-                                                controls
-                                                width="100%"
-                                                height="auto"
-                                                className="yt-player"
-                                            />
-                                        )
-                                    ) : (
-                                        <div className="image-wrapper">
-                                            {
-                                                !imageLoaded && (
-                                                    <div className="loading-spinner">
-                                                        <div className="spinner-border text-light" role="status">
-                                                            <span className="visually-hidden">Loading...</span>
-                                                        </div>
-                                                    </div>
-                                                )
+                                    /* --- REVERTED LOGIC: Use isGif, isVideo, and type_index as number[] --- */
+                                    (() => {
+                                        const typeIndex: number[] = (previewEntry.type_index as any) || [];
+                                        const isGif = previewEntry.isGif;
+                                        const isVideo = previewEntry.isVideo;
+                                        let isCurrentGif = false;
+                                        let isCurrentVideo = false;
+                                        if (previewEntry.image_count === 1) {
+                                            if (isVideo) {
+                                                isCurrentVideo = true;
+                                            } else if (isGif) {
+                                                isCurrentGif = true;
                                             }
-                                            
-                                            <TransformWrapper
-                                                ref={transformWrapperRef}
-                                                minScale={0.1}
-                                                limitToBounds={false}
-                                                centerContent={true}
-                                                wheelEnabled={true}
-                                                disabled={false}
-                                                zoomout={{ step: 100 }}
-                                            >
-                                                <TransformComponent>
-                                                    <img
-                                                        src={imageUrl}
-                                                        alt="Zoomable"
-                                                        style={{
-                                                            width: '100%',
-                                                            height: 'auto',
-                                                            maxWidth: '100%',
-                                                            maxHeight: '100%',
-                                                        }}
+                                        } else {
+                                            if (isVideo && typeIndex.includes(currentImageIndex)) {
+                                                isCurrentVideo = true;
+                                            } else if (isGif && typeIndex.includes(currentImageIndex)) {
+                                                isCurrentGif = true;
+                                            }
+                                        }
+                                        if (isCurrentVideo) {
+                                            if (isVideo === "attatched") {
+                                                return (
+                                                    <ReactPlayer
+                                                        url={`${import.meta.env.VITE_CDN_URL}${previewEntry.contest_id}/${previewEntry.id}${previewEntry.image_count > 1 ? "_" + (currentImageIndex + 1) : ""}.mp4`}
+                                                        controls
+                                                        volume={0.1}
+                                                        width="100%"
+                                                        height="auto"
+                                                        className="hosted-player"
                                                     />
-                                                </TransformComponent>
-                                            </TransformWrapper>
-                                        </div>
-                                    )
+                                                );
+                                            } else {
+                                                return (
+                                                    <ReactPlayer
+                                                        url={previewEntry.image_count > 1 ? `${previewEntry.isVideo}${currentImageIndex + 1}` : previewEntry.isVideo}
+                                                        controls
+                                                        width="100%"
+                                                        height="auto"
+                                                        className="yt-player"
+                                                    />
+                                                );
+                                            }
+                                        } else if (isCurrentGif) {
+                                            return (
+                                                <div className="image-wrapper">
+                                                    {!imageLoaded && (
+                                                        <div className="loading-spinner">
+                                                            <div className="spinner-border text-light" role="status">
+                                                                <span className="visually-hidden">Loading...</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    <TransformWrapper
+                                                        ref={transformWrapperRef}
+                                                        minScale={0.1}
+                                                        limitToBounds={false}
+                                                        centerContent={true}
+                                                        wheelEnabled={true}
+                                                        disabled={false}
+                                                        zoomout={{ step: 100 }}
+                                                    >
+                                                        <TransformComponent>
+                                                            <img
+                                                                src={getImageurl(`${previewEntry.contest_id}/${previewEntry.id}${previewEntry.image_count > 1 ? "_" + (currentImageIndex + 1) : ""}`, null, false, "gif")}
+                                                                alt="Zoomable"
+                                                                style={{
+                                                                    width: '100%',
+                                                                    height: 'auto',
+                                                                    maxWidth: '100%',
+                                                                    maxHeight: '100%',
+                                                                }}
+                                                            />
+                                                        </TransformComponent>
+                                                    </TransformWrapper>
+                                                </div>
+                                            );
+                                        } else {
+                                            return (
+                                                <div className="image-wrapper" style={{height: 'calc(100vh - 120px)', minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                                    {!imageLoaded && (
+                                                        <div className="loading-spinner">
+                                                            <div className="spinner-border text-light" role="status">
+                                                                <span className="visually-hidden">Loading...</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    <TransformWrapper
+                                                        ref={transformWrapperRef}
+                                                        minScale={0.1}
+                                                        limitToBounds={false}
+                                                        centerContent={true}
+                                                        wheelEnabled={true}
+                                                        disabled={false}
+                                                        zoomout={{ step: 100 }}
+                                                        style={{height: '100%', width: '100%'}}
+                                                    >
+                                                        <TransformComponent wrapperStyle={{height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                                            <img
+                                                                src={imageUrl}
+                                                                alt="Zoomable"
+                                                                style={{
+                                                                    maxHeight: '100%',
+                                                                    maxWidth: '100%',
+                                                                    height: 'auto',
+                                                                    width: 'auto',
+                                                                    display: 'block',
+                                                                    margin: 'auto',
+                                                                }}
+                                                            />
+                                                        </TransformComponent>
+                                                    </TransformWrapper>
+                                                </div>
+                                            );
+                                        }
+                                    })()
                                 }
                             </div>
                         </div>
