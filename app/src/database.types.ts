@@ -17,6 +17,7 @@ export type Database = {
       art_contest: {
         Row: {
           channel: Database["public"]["Enums"]["channel"]
+          contest_images: number | null
           created_at: string
           description: string | null
           display: boolean
@@ -33,6 +34,7 @@ export type Database = {
         }
         Insert: {
           channel?: Database["public"]["Enums"]["channel"]
+          contest_images?: number | null
           created_at?: string
           description?: string | null
           display?: boolean
@@ -49,6 +51,7 @@ export type Database = {
         }
         Update: {
           channel?: Database["public"]["Enums"]["channel"]
+          contest_images?: number | null
           created_at?: string
           description?: string | null
           display?: boolean

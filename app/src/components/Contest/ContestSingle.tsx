@@ -40,6 +40,7 @@ export const ContestSingle = () => {
     const [ageConfirmed, setAgeConfirmed] = useState(false);
     const [nsfwToggled, setNsfwToggled] = useState(false);
     const [nsfwAlways, setNsfwAlways] = useState(false);
+    const [modalImage, setModalImage] = useState<string | null>(null);
 
     const [contestStatus, setContestStatus] = useState<string | null>(null);
     const [votingEnabled, setVotingEnabled] = useState(false);
@@ -235,6 +236,38 @@ export const ContestSingle = () => {
                         <p className='description py-4 fs-5'>
                             {contestData[0].description}
                         </p>
+                        {contestData[0].contest_images && contestData[0].contest_images > 0 && (
+                            <div className="contest-images-section py-3">
+                                <h4 className="text-white">Contest Images</h4>
+                                <div className="d-flex gap-3 flex-wrap">
+                                    {Array.from({ length: contestData[0].contest_images }, (_, i) => (
+                                        <img
+                                            key={i}
+                                            src={`${import.meta.env.VITE_CDN_URL}${contestData[0].id}/contest-image-${i + 1}.png`}
+                                            alt={`Contest Reference ${i + 1}`}
+                                            className="contest-image-thumb"
+                                            style={{
+                                                width: 120,
+                                                height: 120,
+                                                objectFit: 'cover',
+                                                borderRadius: 8,
+                                                cursor: 'pointer',
+                                                border: '2px solid #fff',
+                                            }}
+                                            onClick={() => setModalImage(`${import.meta.env.VITE_CDN_URL}${contestData[0].id}/contest-image-${i + 1}.png`)}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        {/* Modal for viewing large image */}
+                        {modalImage && (
+                            <Modal toggleModal={() => setModalImage(null)} dismissable={true} className="contest-image-modal">
+                                <div style={{textAlign: 'center'}}>
+                                    <img src={modalImage} alt="Contest Reference Large" style={{maxWidth: '90vw', maxHeight: '80vh', borderRadius: 12}} />
+                                </div>
+                            </Modal>
+                        )}
                     </div>
                 ) : null
                 }
