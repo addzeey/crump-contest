@@ -7,24 +7,25 @@ import { useState } from "react";
 export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
     const { data: entries, isLoading, error } = useGetContestEntries(contest.id);
 
-    // Construct an array of image URLs, only including PNGs, using Cloudflare Images optimization
-    const images = entries
-        ?.filter((entry) => entry.isVideo === null) // Filter out entries where isVideo is not null
-        .flatMap((entry) => {
-            const basePath = `${entry.contest_id}/${entry.id}`;
-            if (entry.image_count > 1) {
-                return Array.from({ length: entry.image_count }, (_, i) => {
-                    // Check if this index should be a GIF based on type_index
-                    const isGif = entry.isGif && Array.isArray(entry.type_index) && entry.type_index.includes(i+1);
-                    // Only include if it's not a GIF
-                    return !isGif ? getImageurl(`${basePath}_${i + 1}`, 1200, false, "png") : null;
-                }).filter(Boolean); // Remove null entries
-            } else {
-                // For single image, only include if it's not a GIF
-                const isGif = entry.isGif && (!Array.isArray(entry.type_index) || entry.type_index.includes(0));
-                return !isGif ? [getImageurl(basePath, 1200, false, "png")] : [];
-            }
-        }) || [];
+    // Build slides with url + discord name, only including PNGs (skip GIFs), using Cloudflare Images optimization
+    type Slide = { url: string; name: string };
+    const slides: Slide[] =
+        entries
+            ?.filter((entry) => entry.isVideo === null) // Filter out entries where isVideo is not null
+            .flatMap((entry) => {
+                const basePath = `${entry.contest_id}/${entry.id}`;
+                if (entry.image_count > 1) {
+                    return Array.from({ length: entry.image_count }, (_, i) => {
+                        const isGif = entry.isGif && Array.isArray(entry.type_index) && entry.type_index.includes(i + 1);
+                        return !isGif
+                            ? { url: getImageurl(`${basePath}_${i + 1}`, 1200, false, "png"), name: entry.discord_name }
+                            : null;
+                    }).filter((s): s is Slide => Boolean(s));
+                } else {
+                    const isGif = entry.isGif && (!Array.isArray(entry.type_index) || entry.type_index.includes(0));
+                    return !isGif ? [{ url: getImageurl(basePath, 1200, false, "png"), name: entry.discord_name }] : [];
+                }
+            }) || [];
 
     // State to track the current slide index
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -35,9 +36,9 @@ export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
     const [panTargetY, setPanTargetY] = useState<Record<number, number>>({});
 
     // Preload images only once
-    if (images.length > 0) {
-        images.forEach((url) => {
-            new window.Image().src = url;
+    if (slides.length > 0) {
+        slides.forEach((s) => {
+            new window.Image().src = s.url;
         });
     }
 
@@ -128,7 +129,7 @@ export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
                         <div
                             className="obs-background"
                             style={{
-                                backgroundImage: `url(${images[currentSlide]})`,
+                                backgroundImage: `url(${slides[currentSlide]?.url})`,
                             }}
                         ></div>
 
@@ -146,7 +147,7 @@ export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
                                 }, 100);
                             }}
                         >
-                            {images.map((url, index) => {
+                            {slides.map((slide, index) => {
                                 const pan = shouldPan(index);
                                 const isActive = index === currentSlide;
                                 return (
@@ -164,7 +165,7 @@ export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
                                                 }}
                                             >
                                                 <img
-                                                    src={url}
+                                                    src={slide.url}
                                                     alt={`Slide ${index}`}
                                                     style={{
                                                         width: "100%", // Image width fills the 70vw container
@@ -177,7 +178,7 @@ export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
                                             </div>
                                         ) : (
                                             <img
-                                                src={url}
+                                                src={slide.url}
                                                 alt={`Slide ${index}`}
                                                 onLoad={(e) => handleImageLoad(e, index)}
                                                 style={{
@@ -196,6 +197,13 @@ export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
                                 );
                             })}
                         </Fade>
+
+                        {/* Top-right nametag for current entry */}
+                        {slides[currentSlide]?.name && (
+                            <div className="obs-nametag">
+                                {slides[currentSlide].name}
+                            </div>
+                        )}
                     </>
                 ) : null}
             </div>
