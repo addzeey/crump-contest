@@ -2,28 +2,67 @@ import { Tables } from "../../database.types.ts";
 import { useGetContestEntries, getImageurl } from "../../utils/supabase.ts";
 import { Fade } from "react-slideshow-image";
 import "react-slideshow-image/dist/styles.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
     const { data: entries, isLoading, error } = useGetContestEntries(contest.id);
 
-    // Build slides with url + discord name, only including PNGs (skip GIFs), using Cloudflare Images optimization
-    type Slide = { url: string; name: string };
+    // Build slides with url + discord name + file type, include GIFs and attached MP4 videos
+    type Slide = { url: string; name: string; type: "png" | "gif" | "video" };
     const slides: Slide[] =
         entries
-            ?.filter((entry) => entry.isVideo === null) // Filter out entries where isVideo is not null
-            .flatMap((entry) => {
+            ?.flatMap((entry) => {
                 const basePath = `${entry.contest_id}/${entry.id}`;
-                if (entry.image_count > 1) {
-                    return Array.from({ length: entry.image_count }, (_, i) => {
-                        const isGif = entry.isGif && Array.isArray(entry.type_index) && entry.type_index.includes(i + 1);
-                        return !isGif
-                            ? { url: getImageurl(`${basePath}_${i + 1}`, 1200, false, "png"), name: entry.discord_name }
-                            : null;
+                const count = entry.image_count ?? 1;
+                const isAttached = entry.isVideo === "attatched";
+
+                // If the entry references an external video (e.g., YouTube) and doesn't
+                // provide type_index to mark which indices are videos, skip the entry
+                // entirely to avoid generating non-existent CDN URLs.
+                if (entry.isVideo && !isAttached && (!Array.isArray(entry.type_index) || (entry.type_index as number[]).length === 0)) {
+                    return [];
+                }
+
+                if (count > 1) {
+                    const gifIndexSet = entry.isGif && Array.isArray(entry.type_index)
+                        ? new Set<number>(entry.type_index as number[])
+                        : new Set<number>();
+                    const videoIndexSet = entry.isVideo && Array.isArray(entry.type_index)
+                        ? new Set<number>(entry.type_index as number[])
+                        : new Set<number>();
+
+                    return Array.from({ length: count }, (_, idx) => {
+                        // Skip non-attached (e.g., YouTube) video indices entirely
+                        if (videoIndexSet.has(idx) && !isAttached) return null;
+
+                        const asVideo = isAttached && videoIndexSet.has(idx);
+                        const asGif = !!entry.isGif && gifIndexSet.has(idx);
+                        if (asVideo) {
+                            const url = `${import.meta.env.VITE_CDN_URL}${basePath}_${idx + 1}.mp4`;
+                            return { url, name: entry.discord_name, type: "video" } as Slide;
+                        }
+                        if (asGif) {
+                            const url = getImageurl(`${basePath}_${idx + 1}`, null, false, "gif");
+                            return { url, name: entry.discord_name, type: "gif" } as Slide;
+                        }
+                        const url = getImageurl(`${basePath}_${idx + 1}`, 1200, false, "png");
+                        return { url, name: entry.discord_name, type: "png" } as Slide;
                     }).filter((s): s is Slide => Boolean(s));
                 } else {
-                    const isGif = entry.isGif && (!Array.isArray(entry.type_index) || entry.type_index.includes(0));
-                    return !isGif ? [{ url: getImageurl(basePath, 1200, false, "png"), name: entry.discord_name }] : [];
+                    // Single media: if it's a non-attached video (e.g., YouTube), skip from OBS
+                    if (entry.isVideo && !isAttached) {
+                        return [];
+                    }
+                    if (isAttached) {
+                        const url = `${import.meta.env.VITE_CDN_URL}${basePath}.mp4`;
+                        return [{ url, name: entry.discord_name, type: "video" }];
+                    }
+                    if (entry.isGif) {
+                        const url = getImageurl(basePath, null, false, "gif");
+                        return [{ url, name: entry.discord_name, type: "gif" }];
+                    }
+                    const url = getImageurl(basePath, 1200, false, "png");
+                    return [{ url, name: entry.discord_name, type: "png" }];
                 }
             }) || [];
 
@@ -31,31 +70,38 @@ export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
     // Track image dimensions
     const [imageDims, setImageDims] = useState<{ width: number; height: number }[]>([]);
-    // New state for rendered dimensions of panning images and their target Y translation
+    // Rendered dimensions of panning images and their target Y translation
     const [renderedImageDims, setRenderedImageDims] = useState<Record<number, { width: number; height: number }>>({});
     const [panTargetY, setPanTargetY] = useState<Record<number, number>>({});
+    // Video durations in ms (indexed by slide)
+    const [videoDurationsMs, setVideoDurationsMs] = useState<Record<number, number>>({});
 
-    // Preload images only once
+    // Keep currentSlide in-bounds when slides change
+    useEffect(() => {
+        if (currentSlide >= slides.length) {
+            setCurrentSlide(0);
+        }
+    }, [slides.length]);
+
+    // Preload only images/gifs
     if (slides.length > 0) {
         slides.forEach((s) => {
-            new window.Image().src = s.url;
+            if (s.type !== "video") {
+                new window.Image().src = s.url;
+            }
         });
     }
 
     // Handler for image load
     const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>, idx: number) => {
         const { naturalWidth, naturalHeight } = e.currentTarget;
-        // Store natural dimensions
         setImageDims((prev) => {
             const next = [...prev];
             next[idx] = { width: naturalWidth, height: naturalHeight };
             return next;
         });
 
-        // If it's a tall image that will pan, calculate its rendered height
-        // when its width is constrained to 70vw, and the target Y translation.
-        // Use a local check for shouldPan criteria to avoid dependency on state that might not be updated yet.
-        if (naturalHeight > 2 * naturalWidth) {
+        if (slides[idx]?.type === "png" && naturalHeight > 2 * naturalWidth) {
             const viewportWidth70 = window.innerWidth * 0.7;
             const _renderedHeight = (naturalHeight / naturalWidth) * viewportWidth70;
             setRenderedImageDims(prev => ({
@@ -69,46 +115,59 @@ export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
         }
     };
 
-    // Helper to determine if image should pan (based on natural dimensions)
-    const shouldPan = (idx: number) => {
-        const dims = imageDims[idx];
-        return dims && dims.height > 2 * dims.width;
+    // Capture video duration on metadata load
+    const handleVideoMeta = (e: React.SyntheticEvent<HTMLVideoElement>, idx: number) => {
+        const d = e.currentTarget.duration;
+        if (!isNaN(d) && isFinite(d) && d > 0) {
+            setVideoDurationsMs(prev => ({ ...prev, [idx]: Math.max(d * 1000, 3000) }));
+        }
     };
 
-    const PAN_SPEED = 150; // px per second (increased from 100)
+    // Determine if image should pan (PNG only)
+    const shouldPan = (idx: number) => {
+        const s = slides[idx];
+        if (!s || s.type !== "png") return false;
+        const dims = imageDims[idx];
+        return !!dims && dims.height > 2 * dims.width;
+    };
+
+    const PAN_SPEED = 150; // px per second
     const MIN_DURATION = 5; // seconds
     const DEFAULT_DURATION = 10000; // ms
+    const DEFAULT_VIDEO_DURATION = 15000; // ms fallback if metadata missing
 
     const getPanDuration = (idx: number) => {
-        const rDims = renderedImageDims[idx]; // Use rendered dimensions for pan distance
-        // Ensure shouldPan is checked based on natural dimensions (imageDims)
+        const rDims = renderedImageDims[idx];
         const naturalDims = imageDims[idx];
         if (!rDims || !naturalDims || !(naturalDims.height > 2 * naturalDims.width)) {
             return `${MIN_DURATION}s`;
         }
-
         const containerHeightPx = window.innerHeight * 0.7; // 70vh
         const panDistance = Math.max(rDims.height - containerHeightPx, 0);
         if (panDistance === 0) return `${MIN_DURATION}s`;
-
         const duration = panDistance / PAN_SPEED;
         return `${Math.max(duration, MIN_DURATION)}s`;
     };
 
-    // New: get pan duration in ms for slideshow
     const getPanDurationMs = (idx: number) => {
-        const rDims = renderedImageDims[idx]; // Use rendered dimensions
+        const rDims = renderedImageDims[idx];
         const naturalDims = imageDims[idx];
         if (!rDims || !naturalDims || !(naturalDims.height > 2 * naturalDims.width)) {
             return DEFAULT_DURATION;
         }
-
         const containerHeightPx = window.innerHeight * 0.7; // 70vh
         const panDistance = Math.max(rDims.height - containerHeightPx, 0);
         if (panDistance === 0) return DEFAULT_DURATION;
-
         const duration = panDistance / PAN_SPEED;
         return Math.max(duration, MIN_DURATION) * 1000;
+    };
+
+    // Per-slide duration resolver (video vs image)
+    const getSlideDurationMs = (idx: number) => {
+        const s = slides[idx];
+        if (!s) return DEFAULT_DURATION;
+        if (s.type === "video") return videoDurationsMs[idx] ?? DEFAULT_VIDEO_DURATION;
+        return shouldPan(idx) ? getPanDurationMs(idx) : DEFAULT_DURATION;
     };
 
     return (
@@ -123,20 +182,21 @@ export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
             <div className="obs-wrap">
                 {isLoading && <p>Loading...</p>}
                 {error && <p>Error: {error.message}</p>}
-                {entries != null && entries.length > 0 ? (
+                {entries != null && entries.length > 0 && slides.length > 0 ? (
                     <>
-                        {/* Background Layer */}
+                        {/* Background Layer (note: for videos this will be empty) */}
                         <div
                             className="obs-background"
                             style={{
-                                backgroundImage: `url(${slides[currentSlide]?.url})`,
+                                backgroundImage: slides[currentSlide]?.type !== "video" ? `url(${slides[currentSlide]?.url})` : undefined,
+                                backgroundColor: slides[currentSlide]?.type === "video" ? "#000" : undefined,
                             }}
                         ></div>
 
                         {/* Foreground Slideshow */}
                         <Fade
                             autoplay={true}
-                            duration={shouldPan(currentSlide) ? getPanDurationMs(currentSlide) : DEFAULT_DURATION}
+                            duration={getSlideDurationMs(currentSlide)}
                             transitionDuration={500}
                             infinite={true}
                             arrows={false}
@@ -152,7 +212,26 @@ export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
                                 const isActive = index === currentSlide;
                                 return (
                                     <div className="each-slide" key={index}>
-                                        {pan ? (
+                                        {slide.type === "video" ? (
+                                            <video
+                                                key={`video-${isActive ? 'active' : 'inactive'}-${index}`}
+                                                src={slide.url}
+                                                autoPlay
+                                                muted
+                                                playsInline
+                                                controls={false}
+                                                preload="metadata"
+                                                onLoadedMetadata={(e) => handleVideoMeta(e, index)}
+                                                style={{
+                                                    height: "100vh",
+                                                    width: "auto",
+                                                    maxWidth: "100vw",
+                                                    objectFit: "contain",
+                                                    display: "block",
+                                                    margin: "0 auto",
+                                                }}
+                                            />
+                                        ) : pan ? (
                                             <div
                                                 key={`pan-container-${currentSlide}-${index}`}
                                                 style={{
@@ -161,19 +240,19 @@ export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
                                                     overflow: "hidden",
                                                     display: "flex",
                                                     justifyContent: "center",
-                                                    alignItems: "flex-start", // Align to top for transform pan
+                                                    alignItems: "flex-start",
                                                 }}
                                             >
                                                 <img
                                                     src={slide.url}
                                                     alt={`Slide ${index}`}
                                                     style={{
-                                                        width: "100%", // Image width fills the 70vw container
-                                                        height: "auto", // Height adjusts to maintain aspect ratio
+                                                        width: "100%",
+                                                        height: "auto",
                                                         animation: isActive ? `transform-pan-up ${getPanDuration(index)} linear forwards` : undefined,
                                                         ['--pan-translate-y' as string]: `${panTargetY[index] || 0}px`,
                                                     }}
-                                                    onLoad={(e) => handleImageLoad(e, index)} // Keep for all images to get dimensions
+                                                    onLoad={(e) => handleImageLoad(e, index)}
                                                 />
                                             </div>
                                         ) : (
@@ -182,17 +261,14 @@ export const ObsGallery = ({ contest }: { contest: Tables<"art_contest"> }) => {
                                                 alt={`Slide ${index}`}
                                                 onLoad={(e) => handleImageLoad(e, index)}
                                                 style={{
-                                                    maxHeight: "100vh", // Corrected from 100vh
-                                                    maxWidth: "100vw",   // Corrected from 100vw
+                                                    maxHeight: "100vh",
+                                                    maxWidth: "100vw",
                                                     objectFit: "contain",
                                                     display: "block",
                                                     margin: "0 auto"
                                                 }}
                                             />
                                         )}
-                                        {/* Hidden img for dimension detection if pan - NO LONGER NEEDED if main img's onLoad is used for all */}
-                                        {/* Ensure handleImageLoad is called for all images, even non-panning ones, if imageDims is used elsewhere for them */}
-                                        {/* The current setup calls onLoad for the visible img if not panning, or the transformed img if panning. This is fine. */}
                                     </div>
                                 );
                             })}
