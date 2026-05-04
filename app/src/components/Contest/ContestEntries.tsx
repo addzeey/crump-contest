@@ -1,14 +1,23 @@
 import { Tables } from "../../database.types.ts";
-import { getImageThumb, useGetContestEntries, getImageurl } from "../../utils/supabase.ts";
+import { getImageurl } from "../../utils/supabase.ts";
 import { EntryCard } from "./EntryCard.tsx";
 import Modal from "../Model.tsx";
 import ReactPlayer from 'react-player/lazy'
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronLeft, faChevronRight, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-import { setAgeConfirmation, getAgeConfirmation, setAlwaysShowNsfw, getAlwaysShowNsfw, parseUrls } from '../../utils/client'
+import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
+import { useEmoteMap, useParsedMessage } from '../../utils/emotes.tsx'
 type Entry = Tables<'entries'>
+
+const EntryMessage = ({ message }: { message: string | null }) => {
+    const { data: emoteMap = {} } = useEmoteMap();
+    const parsedMessage = useParsedMessage(message, emoteMap);
+
+    if (!message) return null;
+
+    return <p className="message text-white fs-6 fw-medium">{parsedMessage}</p>;
+};
 
 export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, votingEnabled, showNsfw }: { contest: Tables<'art_contest'>, entries: Tables<'entries'>[], onVoteChange: (entryId: string) => void, selectedVotes: Entry[], votingEnabled: boolean, showNsfw: boolean }) => {
     const [previewEntry, setPreviewEntry] = useState<Tables<'entries'> | null>(null);
@@ -221,7 +230,7 @@ export const ContestEntries = ({ contest, entries, onVoteChange, selectedVotes, 
                                 </div>
                                 {
                                     previewEntry.message && (
-                                        <p className="message text-white fs-6 fw-medium" dangerouslySetInnerHTML={{ __html: parseUrls(previewEntry.message) }}></p>
+                                        <EntryMessage message={previewEntry.message} />
                                     )
                                 }
                                 {
