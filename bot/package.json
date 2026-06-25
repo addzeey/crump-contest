@@ -1,0 +1,19 @@
+{
+  "name": "bot",
+  "version": "1.0.0",
+  "description": "This is an open source project for the art showcase website application for [twitch.tv/murdercrumpet](https://www.twitch.tv/murdercrumpet)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.47.5",
+    "discord.js": "^14.16.3",
+    "djs-commander": "^0.0.50",
+    "dotenv": "^16.4.5",
+    "node-fetch": "^3.3.2"
+  }
+}
