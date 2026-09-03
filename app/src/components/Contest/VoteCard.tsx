@@ -4,7 +4,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { getImageurl, getImageThumb, useGetEntriesById } from "../../utils/supabase";
 type Entry = Tables<'entries'>
 export const VoteCard = ({entry} : {entry: Entry}) => {
-    const imageUrl = getImageThumb(`${entry.contest_id}/${entry.id}${entry.image_count > 1 ? "_1" : ""}`, false, null);
+    const firstMediaIsGif = entry.isGif && (
+        entry.image_count === 1 ||
+        (Array.isArray(entry.type_index) && entry.type_index.includes(0))
+    );
+    const imageUrl = getImageThumb(`${entry.contest_id}/${entry.id}${entry.image_count > 1 ? "_1" : ""}`, false, firstMediaIsGif ? "gif" : null);
     
     return (
         <div className="winner-wrap d-flex flex-column gap-1">
